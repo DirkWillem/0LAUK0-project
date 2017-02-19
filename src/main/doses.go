@@ -40,52 +40,65 @@ type (
 			Amount       int `json:"amount"`
 		}
 	}
+
+	UpdatedDose struct {
+		Title          string `json:"title"`
+		Description    string `json:"description"`
+		DispenseAfter  string `json:"dispenseAfter"`
+		DispenseBefore string `json:"dispenseBefore"`
+		Medications    []struct {
+			Amount     int `json:"amount"`
+			Medication struct {
+				ID int `json:"id"`
+			} `json:"medication"`
+		}
+	}
 )
 
 // CreateDose creates a new dose
 func CreateDose(userID int, newDose NewDose) (DoseDetails, error) {
-  // Begin a database transaction
-  tx, err := db.Begin()
-  if err != nil {
-    return DoseDetails{}, InternalServerError(err)
-  }
+	// Begin a SQL transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return DoseDetails{}, InternalServerError(err)
+	}
 
-  // Insert the dose into the Doses table
-  result, err := tx.Exec(`INSERT INTO Doses (Title, Description, UserID, DispenseAfter, DispenseBefore)
+	// Insert the dose into the Doses table
+	result, err := tx.Exec(`INSERT INTO Doses (Title, Description, UserID, DispenseAfter, DispenseBefore)
   VALUES (?, ?, ?, ?, ?)`, newDose.Title, newDose.Description, userID, newDose.DispenseAfter, newDose.DispenseBefore)
 
-  if err != nil {
-    tx.Rollback()
-    return DoseDetails{}, InternalServerError(err)
-  }
+	if err != nil {
+		RollbackOrLog(tx)
+		return DoseDetails{}, InternalServerError(err)
+	}
 
-  doseID, err := result.LastInsertId()
+	doseID, err := result.LastInsertId()
 
-  if err != nil {
-    tx.Rollback()
-    return DoseDetails{}, InternalServerError(err)
-  }
+	if err != nil {
+		RollbackOrLog(tx)
+		return DoseDetails{}, InternalServerError(err)
+	}
 
-  // Insert the dose medications
-  for _, medication := range newDose.Medications {
-    _, err = tx.Exec(`INSERT INTO DoseMedications (DoseID, MedicationID, Amount)
+	// Insert the dose medications
+	for _, medication := range newDose.Medications {
+		_, err = tx.Exec(`INSERT INTO DoseMedications (DoseID, MedicationID, Amount)
     VALUES (?, ?, ?)`, doseID, medication.MedicationID, medication.Amount)
 
-    if err != nil {
-      tx.Rollback()
-      return DoseDetails{}, InternalServerError(err)
-    }
-  }
+		if err != nil {
+			RollbackOrLog(tx)
+			return DoseDetails{}, InternalServerError(err)
+		}
+	}
 
-  // Commit SQL transaction
-  err = tx.Commit()
+	// Commit SQL transaction
+	err = tx.Commit()
 
-  if err != nil {
-    tx.Rollback()
-    return DoseDetails{}, InternalServerError(err)
-  }
+	if err != nil {
+		RollbackOrLog(tx)
+		return DoseDetails{}, InternalServerError(err)
+	}
 
-  return ReadDose(userID, int(doseID))
+	return ReadDose(userID, int(doseID))
 }
 
 // ListDoses returns a list of all doses for a user
@@ -154,4 +167,105 @@ func ReadDose(userID, doseID int) (DoseDetails, error) {
 	}
 
 	return dose, nil
+}
+
+// UpdateDose updates a dose for a given user and dose ID
+func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error) {
+	// Begin a SQL transaction
+	tx, err := db.Begin()
+	if err != nil {
+		return DoseDetails{}, InternalServerError(err)
+	}
+
+	// Get the current state of the dose
+	dose, err := ReadDose(userID, doseID)
+	if err != nil {
+		RollbackOrLog(tx)
+		return DoseDetails{}, InternalServerError(err)
+	}
+
+	// Update the dose
+	_, err = tx.Exec(`UPDATE Doses
+	SET
+		Title = ?,
+		Description = ?,
+		DispenseAfter = ?,
+		DispenseBefore = ?
+	WHERE UserID = ? AND ID = ?`, updatedDose.Title, updatedDose.Description, updatedDose.DispenseAfter, updatedDose.DispenseBefore, userID, doseID)
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return DoseDetails{}, InternalServerError(err)
+	}
+
+	// Update or create dose medications
+	processedDoseMedicationIDs := []int{}
+
+	for _, updatedDoseMedication := range updatedDose.Medications {
+		// Check whether the dose medication is new
+		isNew := false
+
+		// Iterate over all existing medications
+		for _, doseMedication := range dose.Medications {
+			if updatedDoseMedication.Medication.ID == doseMedication.Medication.ID {
+				processedDoseMedicationIDs = append(processedDoseMedicationIDs, updatedDoseMedication.Medication.ID)
+				isNew = false
+
+				// If the amount changed, update it in the database
+				if updatedDoseMedication.Amount != doseMedication.Amount {
+					_, err = tx.Exec(`UPDATE DoseMedications
+					SET
+						Amount = ?
+					WHERE DoseID = ? AND MedicationID = ?`, updatedDoseMedication.Amount, doseID, updatedDoseMedication.Medication.ID)
+
+					if err != nil {
+						RollbackOrLog(tx)
+						return DoseDetails{}, InternalServerError(err)
+					}
+				}
+			}
+		}
+
+		// If the dose medication was new, insert it in the database
+		if isNew {
+			_, err = tx.Exec(`INSERT INTO DoseMedications (DoseID, MedicationID, Amount)
+			VALUES (?, ?, ?)`, doseID, updatedDoseMedication.Medication.ID, updatedDoseMedication.Amount)
+
+			if err != nil {
+				RollbackOrLog(tx)
+				return DoseDetails{}, InternalServerError(err)
+			}
+		}
+	}
+
+	// Remove all dose medications that werent in the updated dose
+	for _, doseMedication := range dose.Medications {
+		processed := false
+
+		for _, medicationID := range processedDoseMedicationIDs {
+			if medicationID == doseMedication.Medication.ID {
+				processed = true
+				break
+			}
+		}
+
+		if !processed {
+			_, err = tx.Exec(`DELETE FROM DoseMedications
+			WHERE DoseID = ? AND MedicationID = ?`, doseID, doseMedication.Medication.ID)
+
+			if err != nil {
+				RollbackOrLog(tx)
+				return DoseDetails{}, InternalServerError(err)
+			}
+		}
+	}
+
+	err = tx.Commit()
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return DoseDetails{}, InternalServerError(err)
+	}
+
+	return ReadDose(userID, doseID)
 }

@@ -28,22 +28,22 @@ type (
 
 // CreateMedication creates a new medication
 func CreateMedication(newMedication NewMedication) (MedicationDetails, error) {
-  // Insert the medication into the database
-  result, err := db.Exec(`INSERT INTO Medications (Title, Description)
+	// Insert the medication into the database
+	result, err := db.Exec(`INSERT INTO Medications (Title, Description)
   VALUES (?, ?)`, newMedication.Title, newMedication.Description)
 
-  if err != nil {
-    return MedicationDetails{}, InternalServerError(err)
-  }
+	if err != nil {
+		return MedicationDetails{}, InternalServerError(err)
+	}
 
-  // Read and return the created medication
-  medicationID, err := result.LastInsertId()
+	// Read and return the created medication
+	medicationID, err := result.LastInsertId()
 
-  if err != nil {
-    return MedicationDetails{}, InternalServerError(err)
-  }
+	if err != nil {
+		return MedicationDetails{}, InternalServerError(err)
+	}
 
-  return ReadMedication(int(medicationID))
+	return ReadMedication(int(medicationID))
 }
 
 // ListMedications returns a list of all medications
