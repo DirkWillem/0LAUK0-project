@@ -25,6 +25,12 @@ type (
 		Title       string `json:"title"`
 		Description string `json:"description"`
 	}
+
+	// UpdatedMedication contains all information on a to-be updated medication
+	UpdatedMedication struct {
+		Title       string `json:"title"`
+		Description string `json:"description"`
+	}
 )
 
 // CreateMedication creates a new medication
@@ -89,4 +95,30 @@ func ReadMedication(id int) (MedicationDetails, error) {
 	}
 
 	return medication, err
+}
+
+// UpdateMedication updates a medication with a given ID
+func UpdateMedication(id int, updatedMedication UpdatedMedication) (MedicationDetails, error) {
+	_, err := db.Exec(`UPDATE Medications
+	SET
+		Title = ?,
+		Description = ?
+	WHERE ID = ?`, updatedMedication.Title, updatedMedication.Description, id)
+
+	if err != nil {
+		return MedicationDetails{}, InternalServerError(err)
+	}
+
+	return ReadMedication(id)
+}
+
+// DeleteMedication deletes a medication with a given ID
+func DeleteMedication(id int) error {
+	_, err := db.Exec(`REMOVE FROM Medications WHERE ID = ?`, id)
+
+	if err != nil {
+		return InternalServerError(err)
+	}
+
+	return nil
 }
