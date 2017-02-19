@@ -3,18 +3,34 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"gopkg.in/hlandau/passlib.v1"
 )
 
 type (
-	UserSummary struct {
-		ID           int    `json:"id"`
-		Username     string `json:"username"`
-		FullName     string `json:"fullName"`
-		Role         string `json:"role"`
-		Email        string `json:"email"`
-		EmailMD5     string `json:"emailMD5"`
+	NewUser struct {
+		Username string `json:"username"`
+		FullName string `json:"fullName"`
+		Role     string `json:"role"`
+		Password string `json:"password"`
+		Email    string `json:"email"`
+
+		PatientIDs    []int `json:"patientIds"`
+		CustomerIDs   []int `json:"customerIds"`
+		DoctorIDs     []int `json:"doctorIds"`
+		PharmacistIDs []int `json:"pharmacistIds"`
 	}
 
+	// UserSummary contains basic information on a user
+	UserSummary struct {
+		ID       int    `json:"id"`
+		Username string `json:"username"`
+		FullName string `json:"fullName"`
+		Role     string `json:"role"`
+		Email    string `json:"email"`
+		EmailMD5 string `json:"emailMD5"`
+	}
+
+	// UserDetails contains all information on a user
 	UserDetails struct {
 		ID       int    `json:"id"`
 		Username string `json:"username"`
@@ -25,10 +41,84 @@ type (
 
 		Patients    []UserSummary `json:"patients,omitempty"`
 		Customers   []UserSummary `json:"customers,omitempty"`
-		Doctors     []UserSummary `json:"doctor,omitempty"`
-		Pharmacists []UserSummary `json:"pharmacist,omitempty"`
+		Doctors     []UserSummary `json:"doctors,omitempty"`
+		Pharmacists []UserSummary `json:"pharmacists,omitempty"`
 	}
 )
+
+// CreateUser creates a new user
+func CreateUser(newUser NewUser) (UserDetails, error) {
+	// Begin SQL transaction
+	tx, err := db.Begin()
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return UserDetails{}, InternalServerError(err)
+	}
+
+	// Create the user record
+	passHash, err := passlib.Hash(newUser.Password)
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return UserDetails{}, InternalServerError(err)
+	}
+
+	result, err := tx.Exec(`INSERT INTO Users (Username, FullName, PasswordHash, Role, Email)
+	VALUES (?, ?, ?, ?, ?)`, newUser.Username, newUser.FullName, passHash, newUser.Role, newUser.Email)
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return UserDetails{}, InternalServerError(err)
+	}
+
+	userID, err := result.LastInsertId()
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return UserDetails{}, InternalServerError(err)
+	}
+
+	// Determine to-be inserted relation IDs
+	insertedRelationIDs := []int{}
+	insertedPatientIDs := []int{}
+
+	switch newUser.Role {
+	case PatientRole:
+		insertedRelationIDs = append(newUser.DoctorIDs, newUser.PharmacistIDs...)
+	case DoctorRole:
+		insertedPatientIDs = newUser.PatientIDs
+	case PharmacistRole:
+		insertedPatientIDs = newUser.CustomerIDs
+	}
+
+	// Insert relations into the database
+	for _, insertedRelationID := range insertedRelationIDs {
+		_, err = db.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, userID, insertedRelationID)
+		if err != nil {
+			RollbackOrLog(tx)
+			return UserDetails{}, InternalServerError(err)
+		}
+	}
+
+	for _, insertedPatientID := range insertedPatientIDs {
+		_, err = db.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, insertedPatientID, userID)
+		if err != nil {
+			RollbackOrLog(tx)
+			return UserDetails{}, InternalServerError(err)
+		}
+	}
+
+	// Commit SQL transaction
+	err = tx.Commit()
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return UserDetails{}, InternalServerError(err)
+	}
+
+	return ReadUser(int(userID))
+}
 
 // ListUsers returns a list of all users
 func ListUsers() ([]UserSummary, error) {

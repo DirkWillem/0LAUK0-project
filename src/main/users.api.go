@@ -7,6 +7,27 @@ import (
 	"fmt"
 )
 
+func HandleCreateUser(w http.ResponseWriter, r *http.Request) {
+	// Read new user from request
+	var newUser NewUser
+
+	err := ReadJSONFromRequest(r, &newUser)
+	if err != nil {
+		WriteError(w, BadRequestError(err))
+		return
+	}
+
+	// Create the user
+	user, err := CreateUser(newUser)
+
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	WriteJSON(w, user)
+}
+
 // HandleListUsers returns a list of all users to the client
 func HandleListUsers(w http.ResponseWriter, r *http.Request) {
 	users, err := ListUsers()
