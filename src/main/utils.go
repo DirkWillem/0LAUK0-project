@@ -5,6 +5,8 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"crypto/md5"
+	"encoding/hex"
 )
 
 type (
@@ -12,6 +14,13 @@ type (
 		Message string `json:"message"`
 	}
 )
+
+// HashMD5 returns the MD5 hash of a string
+func HashMD5(s string) string {
+	h := md5.New()
+	h.Write([]byte(s))
+	return hex.EncodeToString(h.Sum(nil))
+}
 
 // ReadJSONFromRequest unmarshals a JSON request body
 func ReadJSONFromRequest(r *http.Request, target interface{}) error {

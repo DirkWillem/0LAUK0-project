@@ -17,6 +17,9 @@ func main() {
 	r.HandleFunc("/api/medications", CheckJWT(CheckRole(DoctorOrPharmacist, HandleListMedications))).Methods("GET")
 	r.HandleFunc("/api/medications/{medicationId}", CheckJWT(CheckRole(DoctorOrPharmacist, HandleReadMedication))).Methods("GET")
 
+	r.HandleFunc("/api/users", CheckJWT(CheckRole(Admin, HandleListUsers))).Methods("GET")
+	r.HandleFunc("/api/users/{userId}", CheckJWT(CheckRole(Admin, HandleReadUser))).Methods("GET")
+
 	r.HandleFunc("/api/users/{userId}/doses", CheckJWT(CheckRole(Doctor, HandleCreateDose))).Methods("POST")
 	r.HandleFunc("/api/users/{userId}/doses", CheckJWT(HandleListDoses)).Methods("GET")
 	r.HandleFunc("/api/users/{userId}/doses/{doseId}", CheckJWT(HandleReadDose)).Methods("GET")
