@@ -44,6 +44,29 @@ type (
 		Doctors     []UserSummary `json:"doctors,omitempty"`
 		Pharmacists []UserSummary `json:"pharmacists,omitempty"`
 	}
+
+	// UpdatedUser represents an updated user
+	UpdatedUser struct {
+		Username string `json:"username"`
+		FullName string `json:"fullName"`
+		Email string `json:"email"`
+
+		Patients []struct {
+			ID int `json:"id"`
+		} `json:"patients"`
+
+		Customers []struct {
+			ID int `json:"id"`
+		} `json:"customers"`
+
+		Doctors []struct {
+			ID int `json:"id"`
+		} `json:"doctors"`
+
+		Pharmacists []struct {
+			ID int `json:"id"`
+		} `json:"pharmacists"`
+	}
 )
 
 // CreateUser creates a new user
@@ -175,6 +198,128 @@ func ReadUser(userID int) (UserDetails, error) {
 
 	// Return
 	return user, nil
+}
+
+func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
+	user, err := ReadUser(userID)
+	if err != nil {
+		return UserDetails{}, err
+	}
+
+	// Begin transaction
+	tx, err := db.Begin()
+	if err != nil {
+		RollbackOrLog(tx)
+		return UserDetails{}, err
+	}
+
+	// Update user record
+	_, err = db.Exec(`UPDATE Users
+	SET
+		Username = ?,
+		FullName = ?,
+		Email = ?
+	WHERE ID = ?`, updatedUser.Username, updatedUser.FullName, updatedUser.Email, userID)
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return UserDetails{}, err
+	}
+
+	// Update relations
+	if user.Role == PatientRole {
+		processedIds := []int{}
+
+		// Insert all new and keep track of which relations didn't change
+		for _, updatedRelation := range append(updatedUser.Doctors, updatedUser.Pharmacists...) {
+			isNew := true
+
+			for _, relation := range append(user.Doctors, user.Pharmacists...) {
+				if relation.ID == updatedRelation.ID {
+					processedIds = append(processedIds, updatedRelation.ID)
+					isNew = false
+				}
+			}
+
+			if isNew {
+				_, err := tx.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, userID, updatedRelation.ID)
+				if err != nil {
+					RollbackOrLog(tx)
+					return UserDetails{}, err
+				}
+			}
+		}
+
+		// Remove all old relations
+		for _, relation := range append(user.Doctors, user.Pharmacists...) {
+			processed := false
+
+			for _, processedID := range processedIds {
+				if processedID == relation.ID {
+					processed = true
+				}
+			}
+
+			if !processed {
+				_, err := tx.Exec(`DELETE FROM PatientRelations WHERE PatientID = ? AND RelationID = ?`, userID, relation.ID)
+				if err != nil {
+					RollbackOrLog(tx)
+					return UserDetails{}, err
+				}
+			}
+		}
+	} else if user.Role == DoctorRole || user.Role == PharmacistRole {
+		processedIds := []int{}
+
+		// Insert all new and keep track of which relations didn't change
+		for _, updatedPatient := range append(updatedUser.Patients, updatedUser.Customers...) {
+			isNew := true
+
+			for _, patient := range append(user.Patients, user.Customers...) {
+				if patient.ID == updatedPatient.ID {
+					processedIds = append(processedIds, updatedPatient.ID)
+					isNew = false
+				}
+			}
+
+			if isNew {
+				_, err := tx.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, updatedPatient.ID, userID)
+				if err != nil {
+					RollbackOrLog(tx)
+					return UserDetails{}, err
+				}
+			}
+		}
+
+		// Remove all old relations
+		for _, patient := range append(user.Patients, user.Customers...) {
+			processed := false
+
+			for _, processedID := range processedIds {
+				if processedID == patient.ID {
+					processed = true
+				}
+			}
+
+			if !processed {
+				_, err := tx.Exec(`DELETE FROM PatientRelations WHERE PatientID = ? AND RelationID = ?`, patient.ID, userID)
+				if err != nil {
+					RollbackOrLog(tx)
+					return UserDetails{}, err
+				}
+			}
+		}
+	}
+
+	// Commit the transaction and return
+	err = tx.Commit()
+
+	if err != nil {
+		RollbackOrLog(tx)
+		return UserDetails{}, InternalServerError(err)
+	}
+
+	return ReadUser(userID)
 }
 
 // ListRelatedPatients returns a list of all patients related to a user

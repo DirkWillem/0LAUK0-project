@@ -60,3 +60,33 @@ func HandleReadUser(w http.ResponseWriter, r *http.Request) {
 
 	WriteJSON(w, user)
 }
+
+// HandleUpdateUser handles the update of a user
+func HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
+	// Read user ID from URL
+	vars := mux.Vars(r)
+
+	userID, err := strconv.Atoi(vars["userId"])
+	if err != nil {
+		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		return
+	}
+
+	// Read updated user from url
+	var updatedUser UpdatedUser
+
+	err = ReadJSONFromRequest(r, &updatedUser)
+	if err != nil {
+		WriteError(w, BadRequestError(err))
+		return
+	}
+
+	// Update user
+	user, err := UpdateUser(userID, updatedUser)
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	WriteJSON(w, user)
+}

@@ -205,7 +205,7 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 
 	for _, updatedDoseMedication := range updatedDose.Medications {
 		// Check whether the dose medication is new
-		isNew := false
+		isNew := true
 
 		// Iterate over all existing medications
 		for _, doseMedication := range dose.Medications {

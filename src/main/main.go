@@ -20,6 +20,7 @@ func main() {
 	r.HandleFunc("/api/users", CheckJWT(CheckRole(Doctor, HandleCreateUser))).Methods("POST")
 	r.HandleFunc("/api/users", CheckJWT(CheckRole(Admin, HandleListUsers))).Methods("GET")
 	r.HandleFunc("/api/users/{userId}", CheckJWT(CheckRole(Admin, HandleReadUser))).Methods("GET")
+	r.HandleFunc("/api/users/{userId}", CheckJWT(CheckRole(Doctor, HandleUpdateUser))).Methods("PUT")
 
 	r.HandleFunc("/api/users/{userId}/doses", CheckJWT(CheckRole(Doctor, HandleCreateDose))).Methods("POST")
 	r.HandleFunc("/api/users/{userId}/doses", CheckJWT(HandleListDoses)).Methods("GET")
