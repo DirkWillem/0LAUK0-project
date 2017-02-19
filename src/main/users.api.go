@@ -90,3 +90,25 @@ func HandleUpdateUser(w http.ResponseWriter, r *http.Request) {
 
 	WriteJSON(w, user)
 }
+
+// HandleDeleteUser handles the removal of a user
+func HandleDeleteUser(w http.ResponseWriter, r *http.Request) {
+	// Read user ID from URL
+	vars := mux.Vars(r)
+
+	userID, err := strconv.Atoi(vars["userId"])
+	if err != nil {
+		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		return
+	}
+
+	// Delete user and respond
+	err = DeleteUser(userID)
+
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

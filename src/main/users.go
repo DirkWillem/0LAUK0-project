@@ -200,6 +200,7 @@ func ReadUser(userID int) (UserDetails, error) {
 	return user, nil
 }
 
+// UpdateUser updates a user
 func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 	user, err := ReadUser(userID)
 	if err != nil {
@@ -320,6 +321,17 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 	}
 
 	return ReadUser(userID)
+}
+
+// DeleteUser deletes a user
+func DeleteUser(userID int) error {
+	_, err := db.Exec(`DELETE FROM Users WHERE ID = ?`, userID)
+
+	if err != nil {
+		return InternalServerError(err)
+	}
+
+	return nil
 }
 
 // ListRelatedPatients returns a list of all patients related to a user
