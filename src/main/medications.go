@@ -20,6 +20,7 @@ type (
 		Description string `json:"description"`
 	}
 
+	// NewMedication contains all information on a to-be inserted medication
 	NewMedication struct {
 		Title       string `json:"title"`
 		Description string `json:"description"`

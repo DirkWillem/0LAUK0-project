@@ -123,3 +123,31 @@ func HandleUpdateDose(w http.ResponseWriter, r *http.Request) {
 
 	WriteJSON(w, dose)
 }
+
+// HandleDeleteDose handles the removal of a doseda
+func HandleDeleteDose(w http.ResponseWriter, r *http.Request) {
+	// Read user and dose ID from the URL parameters
+	vars := mux.Vars(r)
+
+	userID, err := strconv.Atoi(vars["userId"])
+	if err != nil {
+		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		return
+	}
+
+	doseID, err := strconv.Atoi(vars["doseId"])
+	if err != nil {
+		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'doseId' isn't a valid integer.", vars["doseId"])))
+		return
+	}
+
+	// Delete the dose and respond
+	err = DeleteDose(userID, doseID)
+
+	if err != nil {
+		WriteError(w, err)
+		return
+	}
+
+	w.WriteHeader(http.StatusNoContent)
+}

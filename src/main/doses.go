@@ -30,6 +30,7 @@ type (
 		Medications    []DoseMedication `json:"medications"`
 	}
 
+	// NewDose contains all information on a to-be inserted dose
 	NewDose struct {
 		Title          string `json:"title"`
 		Description    string `json:"description"`
@@ -41,6 +42,7 @@ type (
 		}
 	}
 
+	// UpdatedDose contains all information on a to-be updated dose
 	UpdatedDose struct {
 		Title          string `json:"title"`
 		Description    string `json:"description"`
@@ -268,4 +270,15 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 	}
 
 	return ReadDose(userID, doseID)
+}
+
+// DeleteDose deletes a dose for a given user and dose ID
+func DeleteDose(userID, doseID int) error {
+	_, err := db.Exec(`DELETE FROM Doses WHERE UserID = ? AND ID = ?`, userID, doseID)
+
+	if err != nil {
+		return InternalServerError(err)
+	}
+
+	return nil
 }

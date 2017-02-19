@@ -21,6 +21,7 @@ func main() {
 	r.HandleFunc("/api/users/{userId}/doses", CheckJWT(HandleListDoses)).Methods("GET")
 	r.HandleFunc("/api/users/{userId}/doses/{doseId}", CheckJWT(HandleReadDose)).Methods("GET")
 	r.HandleFunc("/api/users/{userId}/doses/{doseId}", CheckJWT(CheckRole(Doctor, HandleUpdateDose))).Methods("PUT")
+	r.HandleFunc("/api/users/{userId}/doses/{doseId}", CheckJWT(CheckRole(Doctor, HandleDeleteDose))).Methods("DELETE")
 
 	// Start web server
 	log.Printf("Listening on %s:%s", config.Host.Host, config.Host.Port)
