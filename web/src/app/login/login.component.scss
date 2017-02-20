@@ -1,0 +1,24 @@
+@import "~@angular/material/core/theming/prebuilt/indigo-pink.scss";
+
+.page-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100vw;
+  height: 100vh;
+  background: mat-color($primary);
+
+  .login-card {
+    width: 300px;
+  }
+
+  .button-container {
+    margin-top: 16px;
+    text-align: right;
+
+    button {
+      background: mat-color($primary);
+      color: white;
+    }
+  }
+}
