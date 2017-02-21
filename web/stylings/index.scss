@@ -6,3 +6,22 @@ label {
   font-size: 12px;
   font-weight: bold;
 }
+
+.header-actions {
+  float: right;
+  display: inline-flex;
+
+  .action {
+    cursor: pointer;
+    color: #a0a0a0;
+    display: inline-block;
+    width: 32px;
+    text-align: center;
+    line-height: 24px;
+    font-size: 18px;
+
+    &:hover {
+      color: #888888;
+    }
+  }
+}

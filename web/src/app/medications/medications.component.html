@@ -1,7 +1,41 @@
+<template #createMedicationModal let-c="close">
+  <form #createMedicationForm="ngForm" (ngSubmit)="createMedication(c)">
+    <div class="modal-header">
+      <h4 class="modal-title">New Medication</h4>
+      <button type="button" class="close" aria-label="Close" (click)="closeCreateMedicationModal(c)">
+        <span aria-hidden="true">&times;</span>
+      </button>
+
+    </div>
+    <div class="modal-body">
+      <div class="form-group">
+        <label for="title">Title</label>
+        <input type="text" class="form-control" id="title" name="title" placeholder="Medication title" required [(ngModel)]="newMedication.title"/>
+      </div>
+      <div class="form-group">
+        <label for="title">Description</label>
+        <textarea class="form-control" id="description" name="description" placeholder="Medication description" required [(ngModel)]="newMedication.description" rows="4"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" class="btn btn-primary" [disabled]="!createMedicationForm.form.valid">Create</button>
+      <button type="button" class="btn btn-secondary" (click)="closeCreateMedicationModal(c)">Close</button>
+    </div>
+  </form>
+
+</template>
+
 <div class="container">
+  <ngb-alert [dismissible]="true" type="danger" (close)="errorMessage = ''" *ngIf="errorMessage.length > 0">
+    {{errorMessage}}
+  </ngb-alert>
+
   <div class="card">
     <div class="card-header">
       Medications
+      <div class="header-actions">
+        <span class="action fa fa-plus" (click)="openCreateMedicationModal(createMedicationModal)"></span>
+      </div>
     </div>
     <table class="table table-hover">
       <thead>

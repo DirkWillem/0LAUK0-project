@@ -10,6 +10,7 @@ import { MedicationsResolve, MedicationResolve } from './resolves/medication.res
 
 import { AuthGuard} from './guards/auth.guard';
 import { AutoLoginGuard } from "./guards/autologin.guard";
+import { UserService } from "./services/user.service";
 
 /**
  * Module containing all services
@@ -18,7 +19,8 @@ import { AutoLoginGuard } from "./guards/autologin.guard";
   providers: [
     AuthService, AuthGuard, AutoLoginGuard, AuthHttp,
     APIInterface,
-    MedicationService, MedicationsResolve, MedicationResolve
+    MedicationService, MedicationsResolve, MedicationResolve,
+    UserService
   ]
 })
 export class CoreModule {

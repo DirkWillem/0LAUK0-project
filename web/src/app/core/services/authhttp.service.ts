@@ -50,6 +50,28 @@ export class AuthHttp {
   }
 
   /**
+   * Executes a PUT request to a JSON API endpoint
+   * @param url - The URL of the API endpoint
+   * @param data - The data to be sent
+   * @param options - Additional options for the request (optional)
+   * @returns {Promise<T>} The parsed JSON returned from the API
+   */
+  async putJSON<T>(url: string, data: any, options?: BaseRequestOptions): Promise<T> {
+    const response = await this.http.put(url, data, this.createRequestOptions(options || {})).toPromise();
+    return response.json() as T;
+  }
+
+  /**
+   * Executes a DELETE request to an API endpoint
+   * @param url - The URL of the API endpoint
+   * @param options - Additional options for the request (optional)
+   * @returns {Promise<void>} Promise that resolves on completion
+   */
+  async delete(url: string, options?: BaseRequestOptions): Promise<void> {
+    await this.http.delete(url, this.createRequestOptions(options || {})).toPromise();
+  }
+
+  /**
    * Returns the HTTP request options for a given list of base request options
    * @param options - The request options
    * @returns {RequestOptions} The created request options
