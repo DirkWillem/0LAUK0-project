@@ -4,13 +4,13 @@
       <a [routerLink]="['..']">Medications</a> / {{medication?.title}}
     </div>
     <div class="card-block">
-      <div class="form-group">
-        <label>Title</label>
-        <div>{{medication?.title}}</div>
+      <div class="form-group row">
+        <label class="col-sm-2 col-data-label">Title</label>
+        <div class="col-sm-10">{{medication?.title}}</div>
       </div>
-      <div class="form-group">
-        <label>Description</label>
-        <p>{{medication?.description}}</p>
+      <div class="form-group row">
+        <label class="col-sm-2 col-data-label">Description</label>
+        <p class="col-sm-10">{{medication?.description}}</p>
       </div>
     </div>
   </div>

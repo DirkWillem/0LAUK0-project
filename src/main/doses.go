@@ -12,6 +12,7 @@ type (
 		Title          string `json:"title"`
 		DispenseAfter  string `json:"dispenseAfter"`
 		DispenseBefore string `json:"dispenseBefore"`
+		Description    string `json:"description"`
 	}
 
 	// DoseMedication contains information on a medication in a dose
@@ -106,7 +107,7 @@ func CreateDose(userID int, newDose NewDose) (DoseDetails, error) {
 // ListDoses returns a list of all doses for a user
 func ListDoses(userID int) ([]DoseSummary, error) {
 	// Read doses from the database
-	rows, err := db.Query(`SELECT ID, Title, DispenseAfter, DispenseBefore
+	rows, err := db.Query(`SELECT ID, Title, DispenseAfter, DispenseBefore, Description
   FROM Doses
   WHERE UserID = ?`, userID)
 
@@ -115,11 +116,11 @@ func ListDoses(userID int) ([]DoseSummary, error) {
 	}
 
 	// Read doses into a slice
-	var doses []DoseSummary
+	doses := []DoseSummary{}
 	var dose DoseSummary
 
 	for rows.Next() {
-		err := rows.Scan(&dose.ID, &dose.Title, &dose.DispenseAfter, &dose.DispenseBefore)
+		err := rows.Scan(&dose.ID, &dose.Title, &dose.DispenseAfter, &dose.DispenseBefore, &dose.Description)
 		if err != nil {
 			return doses, InternalServerError(err)
 		}

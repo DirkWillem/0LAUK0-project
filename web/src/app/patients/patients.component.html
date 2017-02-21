@@ -1,0 +1,30 @@
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      Patients
+    </div>
+    <table class="table table-hover">
+      <thead>
+      <tr>
+        <th>Name</th>
+        <th>Username</th>
+        <th>Email Address</th>
+      </tr>
+      </thead>
+      <tbody>
+      <tr *ngFor="let patient of patients" >
+        <td>
+          <a [routerLink]="patient.id">{{patient.fullName}}</a>
+        </td>
+        <td>
+          {{patient.username}}
+        </td>
+        <td>
+          <a href="mailto:{{patient.email}}">{{patient.email}}</a>
+        </td>
+      </tr>
+      </tbody>
+    </table>
+  </div>
+
+</div>

@@ -11,6 +11,9 @@ import { MedicationsResolve, MedicationResolve } from './resolves/medication.res
 import { AuthGuard} from './guards/auth.guard';
 import { AutoLoginGuard } from "./guards/autologin.guard";
 import { UserService } from "./services/user.service";
+import { PatientsResolve, UserResolve } from "./resolves/user.resolve";
+import { DoseService } from "./services/dose.service";
+import { DosesResolve } from "./resolves/dose.resolve";
 
 /**
  * Module containing all services
@@ -18,9 +21,9 @@ import { UserService } from "./services/user.service";
 @NgModule({
   providers: [
     AuthService, AuthGuard, AutoLoginGuard, AuthHttp,
-    APIInterface,
     MedicationService, MedicationsResolve, MedicationResolve,
-    UserService
+    UserService, PatientsResolve, UserResolve,
+    DoseService, DosesResolve
   ]
 })
 export class CoreModule {

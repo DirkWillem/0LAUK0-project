@@ -30,7 +30,9 @@ func HandleCreateUser(w http.ResponseWriter, r *http.Request) {
 
 // HandleListUsers returns a list of all users to the client
 func HandleListUsers(w http.ResponseWriter, r *http.Request) {
-	users, err := ListUsers()
+	users, err := ListUsers(map[string]string{
+		"role": r.URL.Query().Get("role"),
+	})
 
 	if err != nil {
 		WriteError(w, err)

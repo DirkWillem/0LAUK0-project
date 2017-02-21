@@ -1,12 +1,9 @@
-import { Injectable } from '@angular/core';
-
 import { Model, SubModelClass, PartialModel, ModelJson } from "../model";
 import { AuthHttp } from "./authhttp.service";
 
 /**
  * Provides the base service for all API interface services
  */
-@Injectable()
 export class APIInterface<M extends Model> {
   protected baseURL: string;
   protected model: SubModelClass<M>;

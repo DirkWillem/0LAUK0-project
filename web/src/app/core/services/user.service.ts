@@ -1,4 +1,4 @@
-import { Model, Field, ModelListField } from "../model";
+import { Model, Field, ModelListField, ModelJson } from "../model";
 import { Injectable } from "@angular/core";
 import { APIInterface } from "./apiinterface.service";
 import { AuthHttp } from "./authhttp.service";
@@ -27,5 +27,15 @@ export class UserService extends APIInterface<User> {
 
   constructor(authHttp: AuthHttp) {
     super(authHttp);
+  }
+
+  /**
+   * Lists all users with a certain role
+   * @param roles - The roles of user to list
+   * @returns {Promise<User[]>} The found users
+   */
+  async listUsersWithRole(roles: string[]) {
+    const json = await this.http.getJSON<ModelJson<User>[]>(`/api${this.baseURL}`, {searchParams: {role: roles.join("|")}});
+    return json.map(item => new this.model(item));
   }
 }

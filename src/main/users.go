@@ -69,6 +69,18 @@ type (
 	}
 )
 
+var (
+	usersSearchMapping SearchMapping
+)
+
+func init() {
+	usersSearchMapping = NewMapping()
+	usersSearchMapping.DefineFieldMapping("role", FieldMapping{
+		SearchType: SearchTypeEqual,
+		DBField: "Role",
+	})
+}
+
 // CreateUser creates a new user
 func CreateUser(newUser NewUser) (UserDetails, error) {
 	// Begin SQL transaction
@@ -144,9 +156,12 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 }
 
 // ListUsers returns a list of all users
-func ListUsers() ([]UserSummary, error) {
+func ListUsers(search map[string]string) ([]UserSummary, error) {
+	query, queryParams := usersSearchMapping.CreateQuery(`SELECT ID, Username, FullName, Role, Email FROM Users
+	WHERE %MAPPING_CONDITIONS%`, search)
+
 	// Read all users from the database
-	rows, err := db.Query(`SELECT ID, Username, FullName, Role, Email FROM Users`)
+	rows, err := db.Query(query, queryParams...)
 
 	if err != nil {
 		return []UserSummary{}, InternalServerError(err)
@@ -364,7 +379,7 @@ func ListRelations(userID int, role string) ([]UserSummary, error) {
 
 // readUsersFromRows is a helper function to easily read a *sql.Rows of users into a slice
 func readUsersFromRows(rows *sql.Rows) ([]UserSummary, error) {
-	var users []UserSummary
+	users := []UserSummary{}
 	var user UserSummary
 
 	for rows.Next() {

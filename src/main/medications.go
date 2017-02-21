@@ -63,7 +63,7 @@ func ListMedications() ([]MedicationSummary, error) {
 	}
 
 	// Iterate over all rows and store in slice
-	var medications []MedicationSummary
+	medications := []MedicationSummary{}
 	var medication MedicationSummary
 
 	for rows.Next() {
