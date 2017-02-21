@@ -3,9 +3,12 @@ import { BrowserModule } from "@angular/platform-browser";
 import { FormsModule } from "@angular/forms";
 import { HttpModule } from "@angular/http";
 
+import { NgbModule } from '@ng-bootstrap/ng-bootstrap';
+
 import { appComponents } from "./app.declarations";
 import { AppComponent } from "./app.component";
-import { MaterialModule } from "@angular/material";
+import { CoreModule } from "./core/core.module";
+import { appRoutingModule } from "./app.routing";
 
 /**
  * Main application module
@@ -15,7 +18,9 @@ import { MaterialModule } from "@angular/material";
     BrowserModule,
     FormsModule,
     HttpModule,
-    MaterialModule
+    CoreModule,
+    NgbModule.forRoot(),
+    appRoutingModule
   ],
 
   providers: [],

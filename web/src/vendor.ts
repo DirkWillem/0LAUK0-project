@@ -10,12 +10,12 @@ import '@angular/common';
 import '@angular/http';
 import '@angular/router';
 
-// Import angular material and angular material theme
-import '@angular/material';
-import '@angular/material/core/theming/prebuilt/indigo-pink.scss';
+// Import bootstrap
+import "@ng-bootstrap/ng-bootstrap";
+import "bootstrap/dist/css/bootstrap.css";
 
 // Import RxJS
 import 'rxjs';
 
 // Import global stylings
-import '../stylings/index.scss';
+import "../stylings/index.scss";

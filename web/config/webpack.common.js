@@ -43,6 +43,11 @@ module.exports = {
                 test: /\.scss$/,
                 loaders: ['style-loader', 'css-loader', 'sass-loader'],
                 exclude: helpers.root('src', 'app')
+            },
+            {
+                test: /\.css/,
+                loaders: ['style-loader', 'css-loader'],
+                exclude: helpers.root('src', 'app')
             }
         ]
     },

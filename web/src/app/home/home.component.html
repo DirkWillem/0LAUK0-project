@@ -1,0 +1,11 @@
+<nav class="navbar navbar-toggleable-md navbar-light bg-faded">
+  <a class="navbar-brand" href="#">SMDS</a>
+
+  <div class="navbar-nav">
+    <a class="nav-item nav-link" *ngFor="let item of visibleMenuItems" [routerLink]="[item.path]" routerLinkActive="active">
+      {{item.title}}
+    </a>
+  </div>
+</nav>
+
+<router-outlet></router-outlet>

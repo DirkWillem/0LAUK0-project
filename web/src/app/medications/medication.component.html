@@ -1,0 +1,17 @@
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      <a [routerLink]="['..']">Medications</a> / {{medication?.title}}
+    </div>
+    <div class="card-block">
+      <div class="form-group">
+        <label>Title</label>
+        <div>{{medication?.title}}</div>
+      </div>
+      <div class="form-group">
+        <label>Description</label>
+        <p>{{medication?.description}}</p>
+      </div>
+    </div>
+  </div>
+</div>

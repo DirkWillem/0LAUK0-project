@@ -1,0 +1,29 @@
+<div class="container">
+  <div class="card">
+    <div class="card-header">
+      Medications
+    </div>
+    <table class="table table-hover">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Title</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let medication of medications" >
+          <td>
+            <a [routerLink]="medication.id">{{medication.id}}</a>
+          </td>
+          <td>
+            <a [routerLink]="medication.id">{{medication.title}}</a>
+          </td>
+          <td>
+            <span class="text-muted">{{medication.description}}</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
