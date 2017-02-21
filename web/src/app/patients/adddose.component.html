@@ -1,0 +1,66 @@
+<form #addDoseForm="ngForm" (ngSubmit)="createDose()">
+  <div class="modal-header">
+    <h4 class="modal-title">Add Dose</h4>
+    <button type="button" class="close" aria-label="Close" (click)="close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+
+  </div>
+  <div class="modal-body">
+    <div class="form-group row">
+      <label for="title" class="col-form-label col-sm-4">Title</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" id="title" name="title" placeholder="Dose title" required [(ngModel)]="newDose.title"/>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="description" class="col-form-label col-sm-4">Description</label>
+      <div class="col-sm-8">
+        <textarea type="text" class="form-control" id="description" name="description" placeholder="Dose description" [(ngModel)]="newDose.description" rows="4" required></textarea>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="dispenseAfter" class="col-form-label col-sm-4" style="line-height: 98px;">Dispense after</label>
+      <div class="col-sm-2">
+        <ngb-timepicker [(ngModel)]="newDose.dispenseAfter" name="dispenseAfter" id="dispenseAfter" required></ngb-timepicker>
+      </div>
+      <label for="dispenseBefore" class="col-form-label col-sm-4" style="line-height: 98px;">Dispense before</label>
+      <div class="col-sm-2">
+        <ngb-timepicker [(ngModel)]="newDose.dispenseBefore" name="dispenseBefore" id="dispenseBefore" required></ngb-timepicker>
+      </div>
+    </div>
+  </div>
+  <table class="table table-hover">
+    <thead>
+    <tr>
+      <th>Medication</th>
+      <th>Amount</th>
+      <th style="width: 64px;"></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let medication of newDose.medications; let i = index">
+      <td>
+        <select class="form-control" [(ngModel)]="newDose.medications[i].medicationId" name="medicationId.{{i}}" required>
+          <option *ngFor="let medication of medications" [value]="medication.id">{{medication.title}}</option>
+        </select>
+      </td>
+      <td>
+        <input type="number" class="form-control" name="amount.{{i}}" [(ngModel)]="newDose.medications[i].amount" required/>
+      </td>
+      <td>
+        <button class="btn btn-danger" type="button" (click)="removeMedication(i)"><i class="fa fa-trash-o"></i></button>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="3" style="text-align: center">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addMedication()"><i class="fa fa-plus"></i></button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-primary" [disabled]="!addDoseForm.form.valid">Add Dose</button>
+    <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
+  </div>
+</form>

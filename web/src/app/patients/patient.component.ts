@@ -4,6 +4,7 @@ import { Subscription } from 'rxjs';
 
 import { UserService, User } from "../core/services/user.service";
 import { Dose } from "../core/services/dose.service";
+import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 
 /**
  * Component for a single patient
@@ -17,7 +18,9 @@ export class PatientComponent implements OnInit, OnDestroy {
   doses: Dose[];
   routeDataSubscription: Subscription;
 
-  constructor(private userService: UserService, private route: ActivatedRoute) {
+  constructor(private userService: UserService,
+              private route: ActivatedRoute,
+              private modalService: NgbModal) {
 
   }
 
@@ -36,5 +39,13 @@ export class PatientComponent implements OnInit, OnDestroy {
    */
   ngOnDestroy() {
     this.routeDataSubscription && this.routeDataSubscription.unsubscribe();
+  }
+
+  /**
+   * Event handler for opening the add dose modal
+   * @param contents - The contents of the modal
+   */
+  openAddDoseModal(contents) {
+    this.modalService.open(contents, {size: "lg"});
   }
 }

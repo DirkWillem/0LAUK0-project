@@ -17,6 +17,14 @@ export class Dose extends Model {
   @ModelListField({detail: true, model: Medication}) medications: Medication[];
 }
 
+export interface NewDose {
+  title: string;
+  dispenseAfter: {hour: number, minute: number};
+  dispenseBefore: {hour: number, minute: number};
+  description: string;
+  medications: {medicationId: number, amount: number}[];
+}
+
 /**
  * Service for interfacing with the doses API
  */
@@ -29,5 +37,13 @@ export class DoseService extends NestedAPIInterface<Dose> {
 
   constructor(authHttp: AuthHttp) {
     super(authHttp);
+  }
+
+  async create(superId: number, newDose: NewDose): Promise<Dose> {
+    let dose: any = newDose;
+    dose.dispenseAfter = `${newDose.dispenseAfter.hour.toString()}:${newDose.dispenseBefore.minute.toString()}:00`;
+    dose.dispenseBefore = `${newDose.dispenseBefore.hour.toString()}:${newDose.dispenseBefore.minute.toString()}:00`;
+
+    return await super.create(superId, dose);
   }
 }

@@ -30,7 +30,10 @@
       <ngb-tab title="Doses">
         <template ngbTabContent>
           <div class="card-block">
-            <div class="list-group">
+            <button class="btn btn-primary" (click)="openAddDoseModal(addDoseModal)">
+              <i class="fa fa-plus"></i> Add Dose
+            </button>
+            <div class="list-group" style="margin-top: 16px;">
               <div class="list-group-item list-group-item-action" style="display: block" *ngFor="let dose of doses">
                 <h5 class="mb-1">{{dose.title}}</h5>
                 <p class="text-muted">{{dose.description}}</p>
@@ -51,3 +54,7 @@
     </ngb-tabset>
   </div>
 </div>
+
+<template #addDoseModal let-c="close">
+  <add-dose [closeFn]="c" [patientId]="patient.id" (onCreate)="doses.push($event)"></add-dose>
+</template>

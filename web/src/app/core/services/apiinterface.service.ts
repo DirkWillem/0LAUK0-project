@@ -17,7 +17,7 @@ export class APIInterface<M extends Model> {
    * @param data - The data of the entity to be created
    * @returns {Promise<M>} - The created entity
    */
-  async create(data: PartialModel<M>): Promise<M> {
+  async create(data: any): Promise<M> {
     const json = await this.http.postJSON<ModelJson<M>>(`/api${this.baseURL}`, data);
     return new this.model(json);
   }

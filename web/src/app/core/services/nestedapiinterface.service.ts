@@ -19,7 +19,7 @@ export class NestedAPIInterface<M extends Model> {
    * @param data - The data of the entity to be created
    * @returns {Promise<M>} - The created entity
    */
-  async create(superId: number, data: PartialModel<M>): Promise<M> {
+  async create(superId: number, data: any): Promise<M> {
     const json = await this.http.postJSON<ModelJson<M>>(`/api${this.baseURL}/${superId}${this.nestedURL}`, data);
     return new this.model(json);
   }

@@ -2,11 +2,6 @@
   margin-top: 64px;
 }
 
-label {
-  font-size: 12px;
-  font-weight: bold;
-}
-
 .header-actions {
   float: right;
   display: inline-flex;
@@ -30,6 +25,8 @@ label {
 .col-data-label {
   padding: 4px 15px;
   text-align: right;
+  font-size: 12px;
+  font-weight: bold;
 }
 
 .nav-tabs .nav-item:first-child {
