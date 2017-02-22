@@ -12,6 +12,7 @@ func main() {
 	r := mux.NewRouter()
 
 	r.HandleFunc("/api/authenticate", HandleAuthenticate).Methods("POST")
+	r.HandleFunc("/api/authenticatedispenser", HandleAuthenticateDispenser).Methods("POST")
 
 	r.HandleFunc("/api/medications", CheckJWT(CheckRole(DoctorOrPharmacist, HandleCreateMedication))).Methods("POST")
 	r.HandleFunc("/api/medications", CheckJWT(CheckRole(DoctorOrPharmacist, HandleListMedications))).Methods("GET")
