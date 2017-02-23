@@ -11,10 +11,11 @@ type (
 
 	// DoseStatus contains status information on a dose for a given day
 	DoseStatus struct {
-		Dispensed bool `json:"dispensed"`
-		Pending bool `json:"pending"`
-		BeingDispensed bool `json:"beingDispensed"`
-		Dose MinimalEntity `json:"dose"`
+		DispensedTime  string        `json:"dispensedTime"`
+		Dispensed      bool          `json:"dispensed"`
+		Pending        bool          `json:"pending"`
+		BeingDispensed bool          `json:"beingDispensed"`
+		Dose           MinimalEntity `json:"dose"`
 	}
 )
 
@@ -64,7 +65,7 @@ func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 // ReadDoseSummary reads the dose summary details for a given user ID and date
 func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
 	// Read dose statuses from the database
-	rows, err := db.Query(`SELECT D.ID AS DoseID, D.Title AS DoseTitle,
+	rows, err := db.Query(`SELECT D.ID AS DoseID, D.Title AS DoseTitle, IFNULL(DH.DispensedTime, '') AS DispensedTime,
   (NOT ISNULL(DH.ID)) AS Dispensed,
   (ISNULL(DH.ID) AND (
     (D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME() < D.DispenseBefore) OR D.DispenseAfter > D.DispenseBefore
@@ -90,7 +91,7 @@ func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
 	var dispensed, pending, beingDispensed byte
 
 	for rows.Next() {
-		err = rows.Scan(&status.Dose.ID, &status.Dose.Title, &dispensed, &pending, &beingDispensed)
+		err = rows.Scan(&status.Dose.ID, &status.Dose.Title, &status.DispensedTime, &dispensed, &pending, &beingDispensed)
 		if err != nil {
 			return statuses, InternalServerError(err)
 		}
