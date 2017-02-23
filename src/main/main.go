@@ -32,6 +32,10 @@ func main() {
 	r.HandleFunc("/api/users/{userId}/doses/{doseId}", CheckJWT(CheckRole(Doctor, HandleUpdateDose))).Methods("PUT")
 	r.HandleFunc("/api/users/{userId}/doses/{doseId}", CheckJWT(CheckRole(Doctor, HandleDeleteDose))).Methods("DELETE")
 
+	r.HandleFunc("/api/users/{userId}/dosehistory", CheckJWT(CheckRole(Dispenser, HandleCreateDoseHistoryEntry))).Methods("POST")
+	r.HandleFunc("/api/users/{userId}/dosehistory", CheckJWT(CheckRole(Doctor, HandleListDoseHistoryEntries))).Methods("GET")
+	r.HandleFunc("/api/users/{userId}/dosehistory/{doseHistoryEntryId}", CheckJWT(CheckRole(Doctor, HandleReadDoseHistoryEntry))).Methods("GET")
+
 	// Start web server
 	log.Printf("Listening on %s:%s", config.Host.Host, config.Host.Port)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.Host.Host, config.Host.Port), r)

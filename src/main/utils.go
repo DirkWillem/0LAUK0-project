@@ -1,17 +1,23 @@
 package main
 
 import (
+	"crypto/md5"
 	"database/sql"
+	"encoding/hex"
 	"encoding/json"
 	"log"
 	"net/http"
-	"crypto/md5"
-	"encoding/hex"
 )
 
 type (
 	ErrorMessage struct {
 		Message string `json:"message"`
+	}
+
+	// Contains the minimal information on an entity
+	MinimalEntity struct {
+		ID    int    `json:"id"`
+		Title string `json:"title"`
 	}
 )
 

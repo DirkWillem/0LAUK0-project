@@ -1,6 +1,7 @@
 package main
 
 const (
+	Dispenser          = "dispenser"
 	Admin              = "admin"
 	Doctor             = "admin,doctor"
 	DoctorDispenser    = "admin,doctor,dispenser"
