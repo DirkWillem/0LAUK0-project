@@ -18,6 +18,10 @@
     &:hover {
       color: #888888;
     }
+
+    &.dangerous:hover {
+      color: red;
+    }
   }
 }
 

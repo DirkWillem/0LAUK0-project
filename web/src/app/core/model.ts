@@ -120,7 +120,7 @@ export function ModelDictField({detail, optional, model} :
  * Represents partial model data
  */
 export type PartialModel<M extends Model> = {
-  [P in keyof M]?: M[P]
+  [P in keyof M]?: M[P];
 }
 
 export type ModelJson<M extends Model> = {

@@ -1,9 +1,17 @@
 import { Injectable } from '@angular/core';
 
 import { NestedAPIInterface } from "./nestedapiinterface.service";
-import { Model, Field, ModelListField } from "../model";
+import { Model, Field, ModelListField, ModelField } from "../model";
 import { Medication } from "./medication.service";
 import { AuthHttp } from "./authhttp.service";
+
+/**
+ * Class representing a medication in a dose
+ */
+export class DoseMedication extends Model {
+  @Field() amount: number;
+  @ModelField({model: Medication}) medication: Medication;
+}
 
 /**
  * Class representing a dose
@@ -14,7 +22,7 @@ export class Dose extends Model {
   @Field() dispenseBefore: string;
   @Field() dispenseAfter: string;
   @Field({detail: true}) description: string;
-  @ModelListField({detail: true, model: Medication}) medications: Medication[];
+  @ModelListField({detail: true, model: DoseMedication}) medications: DoseMedication[];
 }
 
 export interface NewDose {

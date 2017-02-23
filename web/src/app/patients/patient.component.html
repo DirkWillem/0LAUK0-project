@@ -34,8 +34,13 @@
               <i class="fa fa-plus"></i> Add Dose
             </button>
             <div class="list-group" style="margin-top: 16px;">
-              <div class="list-group-item list-group-item-action" style="display: block" *ngFor="let dose of doses">
-                <h5 class="mb-1">{{dose.title}}</h5>
+              <div class="list-group-item list-group-item-action" style="display: block" *ngFor="let dose of doses" (click)="openUpdateDoseModal(dose, updateDoseModal)">
+                <h5 class="mb-1">
+                  {{dose.title}}
+                  <div class="header-actions">
+                    <i class="dangerous action fa fa-trash-o" (click)="deleteDose(dose, $event)"></i>
+                  </div>
+                </h5>
                 <p class="text-muted">{{dose.description}}</p>
 
                 <div class="form-group row">
@@ -55,6 +60,10 @@
   </div>
 </div>
 
-<template #addDoseModal let-c="close">
-  <add-dose [closeFn]="c" [patientId]="patient.id" (onCreate)="doses.push($event)"></add-dose>
+<template #addDoseModal let-cAdd="close">
+  <add-dose [closeFn]="cAdd" [patientId]="patient.id" (onCreate)="doses.push($event)"></add-dose>
+</template>
+
+<template #updateDoseModal let-cUpdate="close">
+  <update-dose [closeFn]="cUpdate" [dose]="pendingDose" [patientId]="patient.id" (onUpdate)="doseUpdated($event)"></update-dose>
 </template>

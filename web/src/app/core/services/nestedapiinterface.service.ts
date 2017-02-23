@@ -44,4 +44,26 @@ export class NestedAPIInterface<M extends Model> {
     const json = await this.http.getJSON<ModelJson<M>>(`/api${this.baseURL}/${superId}${this.nestedURL}/${id}`);
     return new this.model(json);
   }
+
+  /**
+   * Updates an entity by its ID
+   * @param superId - ID of the super-entity
+   * @param id - ID of the entity to read
+   * @param model - Updated entity value
+   * @returns {Promise<M>} Promise resolving to the updated entity
+   */
+  async update(superId: number, id: number, model: M) {
+    const json = await this.http.putJSON<ModelJson<M>[]>(`/api${this.baseURL}/${superId}${this.nestedURL}/${id}`, model.toJSON());
+    return new this.model(json);
+  }
+
+  /**
+   * Deletes an entity by its ID
+   * @param superId - The ID of the super entity of the entity to delete
+   * @param id - The ID of the entity to delete
+   * @returns {Promise<void>} Promise that resolves once the delete is done
+   */
+  async delete(superId: number, id: number): Promise<void> {
+    return await this.http.delete(`/api${this.baseURL}/${superId}${this.nestedURL}/${id}`)
+  }
 }
