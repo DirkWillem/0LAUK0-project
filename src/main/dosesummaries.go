@@ -33,8 +33,9 @@ func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 			WHERE UserID = ? AND CreatedOn <= H.DispensedDay) AS TotalDayCount
 	FROM (SELECT
 		CASE
-			WHEN D.DispenseAfter < D.DispenseBefore THEN DH.DispensedDay
-			ELSE DATE_ADD(DH.DispensedDay, INTERVAL -1 DAY)
+			WHEN (D.DispenseAfter > D.DispenseBefore AND DH.DispensedTime < D.DispenseAfter)
+				THEN DATE_ADD(DH.DispensedDay, INTERVAL -1 DAY)
+			ELSE DH.DispensedDay
 		END AS DispensedDay,
 		D.ID AS DoseID
 	FROM Doses D
@@ -79,7 +80,8 @@ func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
     ON DH.DoseID = D.ID AND DH.DispensedDay = ? AND
        (D.DispenseAfter < D.DispenseBefore OR DH.DispensedTime >= D.DispenseAfter)
   WHERE
-    DATE(D.CreatedOn) <= ? AND D.UserID = ?`, date, date, date, date, userID)
+    DATE(D.CreatedOn) <= ? AND D.UserID = ?
+	ORDER BY D.DispenseAfter`, date, date, date, date, userID)
 
 	if err != nil {
 		return []DoseStatus{}, InternalServerError(err)

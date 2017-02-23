@@ -27,6 +27,7 @@
           </div>
         </template>
       </ngb-tab>
+
       <ngb-tab title="Doses">
         <template ngbTabContent>
           <div class="card-block">
@@ -52,6 +53,16 @@
                   <div class="col-sm-10">{{dose.dispenseBefore}}</div>
                 </div>
               </div>
+            </div>
+          </div>
+        </template>
+      </ngb-tab>
+
+      <ngb-tab title="Dose History">
+        <template ngbTabContent>
+          <div class="card-block">
+            <div class="list-group">
+              <dose-summary class="list-group-item list-group-item-action" *ngFor="let summary of doseSummaries" [summary]="summary" [userId]="patient.id"></dose-summary>
             </div>
           </div>
         </template>

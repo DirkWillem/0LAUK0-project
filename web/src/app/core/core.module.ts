@@ -2,18 +2,20 @@ import { NgModule, Optional, SkipSelf } from '@angular/core';
 
 import { AuthService } from "./services/auth.service";
 import { AuthHttp } from "./services/authhttp.service";
-import { APIInterface } from './services/apiinterface.service';
-
 import { MedicationService } from './services/medication.service';
+import { UserService } from "./services/user.service";
+import { DoseService } from "./services/dose.service";
+import { DoseSummaryService } from "./services/dosesummary.service";
 
 import { MedicationsResolve, MedicationResolve } from './resolves/medication.resolve';
+import { DoseSummariesResolve } from "./resolves/dosesummary.resolve";
+import { PatientsResolve, UserResolve } from "./resolves/user.resolve";
+import { DosesResolve } from "./resolves/dose.resolve";
 
 import { AuthGuard} from './guards/auth.guard';
 import { AutoLoginGuard } from "./guards/autologin.guard";
-import { UserService } from "./services/user.service";
-import { PatientsResolve, UserResolve } from "./resolves/user.resolve";
-import { DoseService } from "./services/dose.service";
-import { DosesResolve } from "./resolves/dose.resolve";
+
+
 
 /**
  * Module containing all services
@@ -23,7 +25,8 @@ import { DosesResolve } from "./resolves/dose.resolve";
     AuthService, AuthGuard, AutoLoginGuard, AuthHttp,
     MedicationService, MedicationsResolve, MedicationResolve,
     UserService, PatientsResolve, UserResolve,
-    DoseService, DosesResolve
+    DoseService, DosesResolve,
+    DoseSummaryService, DoseSummariesResolve
   ]
 })
 export class CoreModule {

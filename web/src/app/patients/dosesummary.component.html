@@ -1,0 +1,27 @@
+<div class="header" (click)="toggle()">
+  <strong class="date">{{formatDate(summary.date)}}:</strong>
+
+  <span class="stats">
+    <span class="text-muted" [class.text-success]="summary.totalCount == summary.dispensedCount">{{summary.dispensedCount}}/{{summary.totalCount}} doses taken</span>
+    <span *ngIf="summary.totalCount - summary.pendingCount > summary.dispensedCount">,
+      <span class="text-danger">{{summary.totalCount - summary.pendingCount - summary.dispensedCount}} dose<span *ngIf="summary.totalCount - summary.pendingCount - summary.dispensedCount > 1">s</span> not taken</span>
+    </span>
+    <span *ngIf="summary.pendingCount > 0">,
+      <span class="text-muted">{{summary.pendingCount}} dose<span *ngIf="summary.pendingCount > 1">s</span> to be taken</span>
+    </span>
+  </span>
+
+  <span class="fa collapse-icon" [class.fa-chevron-up]="opened" [class.fa-chevron-down]="!opened"></span>
+</div>
+
+<div *ngIf="opened" class="content">
+  <div class="row" *ngFor="let status of statuses">
+    <label class="col-data-label col-sm-2">{{status.dose.title}}</label>
+    <div class="col-sm-10">
+      <span *ngIf="status.dispensed" class="text-success">Dispensed at {{status.dispensedTime}}</span>
+      <span *ngIf="!status.dispensed && status.pending" class="text-muted">To be dispensed</span>
+      <span *ngIf="!status.dispensed && !status.pending" class="text-danger">Not dispensed</span>
+    </div>
+  </div>
+</div>
+

@@ -109,7 +109,8 @@ func ListDoses(userID int) ([]DoseSummary, error) {
 	// Read doses from the database
 	rows, err := db.Query(`SELECT ID, Title, DispenseAfter, DispenseBefore, Description
   FROM Doses
-  WHERE UserID = ?`, userID)
+  WHERE UserID = ?
+  ORDER BY DispenseAfter`, userID)
 
 	if err != nil {
 		return []DoseSummary{}, InternalServerError(err)

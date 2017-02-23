@@ -5,6 +5,7 @@ import { Subscription } from 'rxjs';
 import { UserService, User } from "../core/services/user.service";
 import { Dose, DoseService } from "../core/services/dose.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
+import { DoseSummarySummary } from "../core/services/dosesummary.service";
 
 /**
  * Component for a single patient
@@ -16,6 +17,7 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 export class PatientComponent implements OnInit, OnDestroy {
   patient: User;
   doses: Dose[];
+  doseSummaries: DoseSummarySummary[];
   routeDataSubscription: Subscription;
 
   pendingDose: Dose = null;
@@ -31,9 +33,10 @@ export class PatientComponent implements OnInit, OnDestroy {
    * Initialization Angular lifecycle hook
    */
   ngOnInit() {
-    this.routeDataSubscription = this.route.data.subscribe((data: {patient: User, doses: Dose[]}) => {
+    this.routeDataSubscription = this.route.data.subscribe((data: {patient: User, doses: Dose[], doseSummaries: DoseSummarySummary[]}) => {
       this.patient = data.patient;
       this.doses = data.doses;
+      this.doseSummaries = data.doseSummaries;
     });
   }
 

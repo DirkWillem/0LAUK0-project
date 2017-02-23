@@ -48,6 +48,6 @@ func CheckRole(roles string, next func(http.ResponseWriter, *http.Request)) func
 			}
 		}
 
-		WriteError(w, UnauthorizedErrorMessage(fmt.Sprintf("Your role (%s) is not authorized to access this resource.", session.Role)))
+		WriteError(w, UnauthorizedErrorMessage(fmt.Sprintf("Your role (%s) is not authorized to access %s %s.", session.Role, r.Method, r.URL.String())))
 	}
 }
