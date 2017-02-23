@@ -36,6 +36,9 @@ func main() {
 	r.HandleFunc("/api/users/{userId}/dosehistory", CheckJWT(CheckRole(Doctor, HandleListDoseHistoryEntries))).Methods("GET")
 	r.HandleFunc("/api/users/{userId}/dosehistory/{doseHistoryEntryId}", CheckJWT(CheckRole(Doctor, HandleReadDoseHistoryEntry))).Methods("GET")
 
+	r.HandleFunc("/api/users/{userId}/dosesummaries", CheckJWT(CheckRole(Doctor, HandleListDoseSummaries))).Methods("GET")
+	r.HandleFunc("/api/users/{userId}/dosesummaries/{date}", CheckJWT(CheckRole(Doctor, HandleReadDoseSummary))).Methods("GET")
+
 	// Start web server
 	log.Printf("Listening on %s:%s", config.Host.Host, config.Host.Port)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.Host.Host, config.Host.Port), r)
