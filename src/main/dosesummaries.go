@@ -30,7 +30,7 @@ func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 				((D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME() < D.DispenseBefore) OR
 					D.DispenseAfter > D.DispenseBefore)) AS PendingDayCount,
 		(SELECT COUNT(*) FROM Doses
-			WHERE UserID = ? AND CreatedOn <= H.DispensedDay) AS TotalDayCount
+			WHERE UserID = ? AND DATE(CreatedOn) <= H.DispensedDay) AS TotalDayCount
 	FROM (SELECT
 		CASE
 			WHEN (D.DispenseAfter > D.DispenseBefore AND DH.DispensedTime < D.DispenseAfter)
