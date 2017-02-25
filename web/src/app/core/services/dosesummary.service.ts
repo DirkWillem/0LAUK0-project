@@ -62,7 +62,18 @@ export class DoseSummaryService {
    * @returns {Promise<Observable<DoseSummarySummary[]>>} Promise resolving to the observable of the updates
    */
   async getDoseSummariesUpdates(userId: number): Promise<Observable<DoseSummarySummary[]>> {
-    return (await this.dispatcherService.subscribeTo<{updatedSummaries: DoseSummarySummary[]}>("dosesummaries", {userId: userId}))
+    return (await this.dispatcherService.subscribeTo<{updatedSummaries: DoseSummarySummary[]}>("dosesummaries", {userId}))
       .map(val => val.payload.updatedSummaries);
+  }
+
+  /**
+   * Returns the updates to the dose statuses for a given user ID on a given date
+   * @param userId - the ID of the user the dose statuses belong to
+   * @param date - The date to find the dose status updates for
+   * @returns {Promise<void>} Promise resolving to the observable of the updates
+   */
+  async getDoseStatusesUpdates(userId: number, date: string): Promise<Observable<DoseStatus[]>> {
+    return (await this.dispatcherService.subscribeTo<{updatedStatuses: DoseStatus[]}>("dosestatuses", {userId, date}))
+      .map(val => val.payload.updatedStatuses);
   }
 }

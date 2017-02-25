@@ -1,4 +1,5 @@
-import { Component, Input } from '@angular/core';
+import { Component, Input, OnInit, OnDestroy } from '@angular/core';
+import { Subscription } from 'rxjs'
 
 import { DoseSummarySummary, DoseStatus, DoseSummaryService } from "../core/services/dosesummary.service";
 
@@ -9,15 +10,31 @@ import * as moment from 'moment'
   templateUrl: "./dosesummary.component.html",
   styleUrls: ["./dosesummary.component.scss"]
 })
-export class DoseSummaryComponent {
+export class DoseSummaryComponent implements OnInit, OnDestroy {
   @Input() summary: DoseSummarySummary;
   @Input() userId: number;
   opened: boolean = false;
 
   statuses: DoseStatus[] = null;
+  statusesUpdatesSubscription: Subscription;
 
   constructor(private doseSummaryService: DoseSummaryService) {
 
+  }
+
+  /**
+   * Initialization Angular lifecycle hook
+   */
+  async ngOnInit() {
+    this.statusesUpdatesSubscription = (await this.doseSummaryService.getDoseStatusesUpdates(this.userId, this.summary.date))
+      .subscribe(statuses => this.statuses = statuses);
+  }
+
+  /**
+   * Destruction Angular lifecycle hook
+   */
+  ngOnDestroy() {
+    this.statusesUpdatesSubscription && this.statusesUpdatesSubscription.unsubscribe();
   }
 
   /**

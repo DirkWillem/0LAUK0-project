@@ -19,7 +19,10 @@ export class PatientComponent implements OnInit, OnDestroy {
   patient: User;
   doses: Dose[];
   doseSummaries: DoseSummarySummary[];
+
   routeDataSubscription: Subscription;
+  dosesUpdatesSubscription: Subscription;
+  doseSummariesUpdatesSubscription: Subscription;
 
   pendingDose: Dose = null;
 
@@ -40,10 +43,10 @@ export class PatientComponent implements OnInit, OnDestroy {
       this.doses = data.doses;
       this.doseSummaries = data.doseSummaries;
 
-      (await this.doseService.getCollectionUpdates(this.patient.id))
+      this.dosesUpdatesSubscription = (await this.doseService.getCollectionUpdates(this.patient.id))
         .subscribe(mut => this.doses = applyUpdateToCollection(this.doses, mut));
 
-      (await this.doseSummaryService.getDoseSummariesUpdates(this.patient.id))
+      this.doseSummariesUpdatesSubscription = (await this.doseSummaryService.getDoseSummariesUpdates(this.patient.id))
         .subscribe(newSummaries => this.doseSummaries = newSummaries);
     });
   }
@@ -53,6 +56,8 @@ export class PatientComponent implements OnInit, OnDestroy {
    */
   ngOnDestroy() {
     this.routeDataSubscription && this.routeDataSubscription.unsubscribe();
+    this.dosesUpdatesSubscription && this.dosesUpdatesSubscription.unsubscribe();
+    this.doseSummariesUpdatesSubscription && this.doseSummariesUpdatesSubscription.unsubscribe();
   }
 
   /**

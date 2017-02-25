@@ -1,6 +1,9 @@
 package main
 
-import "main/utils"
+import (
+	"time"
+	"main/utils"
+)
 
 type (
 	// NewDoseHistoryEntry represents a to-be inserted dose history entry
@@ -25,6 +28,11 @@ type (
 		DispensedTime string              `json:"dispensedTime"`
 		Dose          utils.MinimalEntity `json:"dose"`
 	}
+)
+
+const (
+	TimeFormat = "15:04:05"
+	DateFormat = "2006-01-02"
 )
 
 var (
@@ -61,6 +69,36 @@ func CreateDoseHistoryEntry(userID int, newDoseHistoryEntry NewDoseHistoryEntry)
 	}
 
 	doseSummariesSubject.DoseSummariesUpdated(userID, summaries)
+
+	// Notify the dispatcher that the dose statuses of the current day have been updated
+	dose, err := ReadDose(userID, newDoseHistoryEntry.DoseID)
+	if err != nil {
+		return DoseHistoryEntryDetails{}, err
+	}
+
+	dispensedDay, err := time.Parse(DateFormat, newDoseHistoryEntry.DispensedDay)
+	if err != nil {
+		return DoseHistoryEntryDetails{}, err
+	}
+	dispenseAfter, err := time.Parse(TimeFormat, dose.DispenseAfter)
+	if err != nil {
+		return DoseHistoryEntryDetails{}, err
+	}
+	dispenseBefore, err := time.Parse(TimeFormat, dose.DispenseBefore)
+	if err != nil {
+		return DoseHistoryEntryDetails{}, err
+	}
+
+	if dispenseAfter.After(dispenseBefore) {
+		dispensedDay = dispensedDay.AddDate(0, 0, -1)
+	}
+
+	statuses, err := ReadDoseSummary(userID, dispensedDay.Format(DateFormat))
+	if err != nil {
+		dispensedDay = dispensedDay.AddDate(0, 0, -1)
+	}
+
+	doseStatusesSubject.DoseStatusesUpdated(userID, dispensedDay.Format(DateFormat), statuses)
 
 	// Read the updated dose history entry and return
 	doseHistoryEntryID, err := result.LastInsertId()
