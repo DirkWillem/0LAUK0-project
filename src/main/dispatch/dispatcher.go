@@ -11,13 +11,13 @@ type (
 		GetTitle() string
 
 		// CreateSubscriptionParams creates a SubscriptionParams interface from a given set of subscription data
-		CreateSubscriptionParams(subscriptionData map[string]interface{}) SubscriptionParams
+		CreateSubscriptionParams(subscriptionData map[string]interface{}) (SubscriptionParams, error)
 
 		// ShouldSendMessageToSubscription returns whether a message should te sent to a subscription with certain subscription parameters
-		MessageShouldBeSentToSubscription(message subjectMessage, subscriptionParams SubscriptionParams) bool
+		MessageShouldBeSentToSubscription(message SubjectMessage, subscriptionParams SubscriptionParams) bool
 
 		// GetMessageChan returns the outgoing message channel of the subject
-		GetMessageChan() <-chan subjectMessage
+		GetMessageChan() <-chan SubjectMessage
 	}
 
 	SubscriptionParams interface {
@@ -26,7 +26,7 @@ type (
 	}
 
 	// subjectMessage contains the message data that is sent from a subject to the dispatcher
-	subjectMessage struct {
+	SubjectMessage struct {
 		Action  string
 		Payload interface{}
 	}
@@ -91,7 +91,7 @@ func (d *Dispatcher) Start() {
 	for true {
 		// Read the next incoming message
 		idx, value, _ := reflect.Select(cases)
-		message := value.Interface().(subjectMessage)
+		message := value.Interface().(SubjectMessage)
 		subject := d.subjects[idx]
 
 		// Iterate over all clients

@@ -4,23 +4,26 @@ type (
 	// CollectionSubject represents a subscribable subject pertaining to a collection of entities
 	CollectionSubject struct {
 		Title    string
-		messages chan subjectMessage
+		messages chan SubjectMessage
 	}
 
 	// collectionSubjectSubscriptionParams contains the subscription parameters to a CollectionSubject
 	collectionSubjectSubscriptionParams struct {
 	}
 
+	// CollectionEntityAddedPayload contains the payload for an "added" message
 	CollectionEntityAddedPayload struct {
 		ID          int         `json:"id"`
 		AddedEntity interface{} `json:"addedEntity"`
 	}
 
+	// CollectionEntityUpdatedPayload contains the payload for an "updated" message
 	CollectionEntityUpdatedPayload struct {
 		ID            int         `json:"id"`
 		UpdatedEntity interface{} `json:"updatedEntity"`
 	}
 
+	// CollectionEntityDeletedPayload contains the payload for a "deleted" message
 	CollectionEntityDeletedPayload struct {
 		ID int `json:"id"`
 	}
@@ -36,7 +39,7 @@ const (
 func NewCollectionSubject(title string, dispatcher *Dispatcher) *CollectionSubject {
 	subject := &CollectionSubject{
 		Title:    title,
-		messages: make(chan subjectMessage, 10),
+		messages: make(chan SubjectMessage, 10),
 	}
 
 	dispatcher.RegisterSubject(subject)
@@ -52,21 +55,21 @@ func (cs *CollectionSubject) GetTitle() string {
 	return cs.Title
 }
 
-func (cs *CollectionSubject) CreateSubscriptionParams(params map[string]interface{}) SubscriptionParams {
-	return &collectionSubjectSubscriptionParams{}
+func (cs *CollectionSubject) CreateSubscriptionParams(params map[string]interface{}) (SubscriptionParams, error) {
+	return &collectionSubjectSubscriptionParams{}, nil
 }
 
-func (cs *CollectionSubject) MessageShouldBeSentToSubscription(message subjectMessage, subscriptionParams SubscriptionParams) bool {
+func (cs *CollectionSubject) MessageShouldBeSentToSubscription(message SubjectMessage, subscriptionParams SubscriptionParams) bool {
 	return true
 }
 
-func (cs *CollectionSubject) GetMessageChan() <-chan subjectMessage {
+func (cs *CollectionSubject) GetMessageChan() <-chan SubjectMessage {
 	return cs.messages
 }
 
-// Notifies subscribers of the subject that a new entity has been added
+// EntityAdded notifies subscribers of the subject that a new entity has been added
 func (cs *CollectionSubject) EntityAdded(entityID int, addedEntity interface{}) {
-	cs.messages <- subjectMessage{
+	cs.messages <- SubjectMessage{
 		Action: CollectionEntityAddedAction,
 		Payload: CollectionEntityAddedPayload{
 			ID:          entityID,
@@ -75,9 +78,9 @@ func (cs *CollectionSubject) EntityAdded(entityID int, addedEntity interface{}) 
 	}
 }
 
-// Notifies subscribers of the subject that an entity has been updated
+// EntityUpdated notifies subscribers of the subject that an entity has been updated
 func (cs *CollectionSubject) EntityUpdated(entityID int, updatedEntity interface{}) {
-	cs.messages <- subjectMessage{
+	cs.messages <- SubjectMessage{
 		Action: CollectionEntityUpdatedAction,
 		Payload: CollectionEntityUpdatedPayload{
 			ID:            entityID,
@@ -86,9 +89,9 @@ func (cs *CollectionSubject) EntityUpdated(entityID int, updatedEntity interface
 	}
 }
 
-// Notifies subscribers of the subject that an entity has been deleted
+// EntityDeleted notifies subscribers of the subject that an entity has been deleted
 func (cs *CollectionSubject) EntityDeleted(entityID int) {
-	cs.messages <- subjectMessage{
+	cs.messages <- SubjectMessage{
 		Action: CollectionEntityDeletedAction,
 		Payload: CollectionEntityUpdatedPayload{
 			ID: entityID,

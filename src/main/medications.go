@@ -34,6 +34,7 @@ type (
 	}
 )
 
+// ToSummary transforms a MedicationDetails into its MedicationSummary counterpart
 func (md MedicationDetails) ToSummary() MedicationSummary {
 	return MedicationSummary{
 		ID:          md.ID,

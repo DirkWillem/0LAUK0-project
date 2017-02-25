@@ -8,9 +8,10 @@ import (
 type (
 	// Client contains information on a client of the dispatcher
 	client struct {
-		Dispatcher       *Dispatcher
-		Subscriptions    []subscription
-		OutgoingMessages chan outgoingMessage
+		Dispatcher            *Dispatcher
+		Subscriptions         []subscription
+		OutgoingMessages      chan outgoingMessage
+		SubscriptionIDCounter int
 	}
 
 	// Contains information on an incoming message
@@ -29,9 +30,10 @@ type (
 // newClient creates a new Client
 func newClient(dispatcher *Dispatcher) *client {
 	return &client{
-		Dispatcher:       dispatcher,
-		Subscriptions:    make([]subscription, 0),
-		OutgoingMessages: make(chan outgoingMessage, 10),
+		Dispatcher:            dispatcher,
+		Subscriptions:         make([]subscription, 0),
+		OutgoingMessages:      make(chan outgoingMessage, 10),
+		SubscriptionIDCounter: 1,
 	}
 }
 
@@ -60,7 +62,11 @@ func (c *client) getSubscription(subjectTitle string) subscription {
 // Subscribe subscribes a client to a subscription
 func (c *client) Subscribe(subjectTitle string, subscriptionParams map[string]interface{}) (subscription, error) {
 	for _, subject := range c.Dispatcher.subjects {
-		params := subject.CreateSubscriptionParams(subscriptionParams)
+		params, err := subject.CreateSubscriptionParams(subscriptionParams)
+
+		if err != nil {
+			return subscription{}, err
+		}
 
 		// Check whether the user is already subscribed
 		for _, sub := range c.Subscriptions {
@@ -74,10 +80,12 @@ func (c *client) Subscribe(subjectTitle string, subscriptionParams map[string]in
 		// Subscribe
 		if title := subject.GetTitle(); title == subjectTitle {
 			c.Subscriptions = append(c.Subscriptions, subscription{
-				SubscriptionID:     len(c.Subscriptions),
+				SubscriptionID:     c.SubscriptionIDCounter,
 				SubjectTitle:       title,
 				SubscriptionParams: params,
 			})
+
+			c.SubscriptionIDCounter++
 
 			return c.Subscriptions[len(c.Subscriptions)-1], nil
 		}
@@ -88,8 +96,18 @@ func (c *client) Subscribe(subjectTitle string, subscriptionParams map[string]in
 
 // Unsubscribe unsubscribes a client from a subscription with the given subscription ID
 func (c *client) Unsubscribe(subscriptionID int) {
-	c.Subscriptions[subscriptionID] = c.Subscriptions[len(c.Subscriptions)-1]
-	c.Subscriptions = c.Subscriptions[:len(c.Subscriptions)-1]
+	index := -1
+
+	for i, sub := range c.Subscriptions {
+		if sub.SubscriptionID == subscriptionID {
+			index = i
+		}
+	}
+
+	if index >= 0 {
+		c.Subscriptions[subscriptionID] = c.Subscriptions[len(c.Subscriptions)-1]
+		c.Subscriptions = c.Subscriptions[:len(c.Subscriptions)-1]
+	}
 }
 
 // handleIncomingMessage handles an incoming message from the client
@@ -131,9 +149,32 @@ func (c *client) handleIncomingMessage(msg incomingMessage) {
 
 		c.OutgoingMessages <- outgoingMessage{
 			SubscriptionID: -1,
-			RequestID: msg.RequestID,
-			Action: "subscribe",
-			Payload: subscriptionPayload{SubscriptionID: subscription.SubscriptionID},
+			RequestID:      msg.RequestID,
+			Action:         "subscribe",
+			Payload:        subscriptionPayload{SubscriptionID: subscription.SubscriptionID},
+		}
+
+	case "unsubscribe":
+		// Type checks
+		s, ok := msg.Payload["subscriptionId"]
+		if !ok {
+			c.OutgoingMessages <- BadRequestErrorMessage("Missing field 'subscriptionId' in payload of subscription action").OutgoingMessage(msg.RequestID)
+			return
+		}
+
+		subscriptionId, ok := s.(float64)
+		if !ok {
+			c.OutgoingMessages <- BadRequestErrorMessage(fmt.Sprintf("Invalid type for field 'subject' in payload of subscription action: expected number, got %s", reflect.TypeOf(s).Name())).OutgoingMessage(msg.RequestID)
+			return
+		}
+
+		c.Unsubscribe(int(subscriptionId))
+
+		c.OutgoingMessages <- outgoingMessage{
+			SubscriptionID: -1,
+			RequestID:      msg.RequestID,
+			Action:         "unsubscribe",
+			Payload:        map[string]interface{}{},
 		}
 
 	default:

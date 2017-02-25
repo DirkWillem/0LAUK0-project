@@ -59,6 +59,17 @@ type (
 	}
 )
 
+// ToSummary transforms a DoseDetails into its DoseSummary counterpart
+func (dd DoseDetails) ToSummary() DoseSummary {
+	return DoseSummary{
+		ID:             dd.ID,
+		Title:          dd.Title,
+		DispenseAfter:  dd.DispenseAfter,
+		DispenseBefore: dd.DispenseBefore,
+		Description:    dd.Description,
+	}
+}
+
 // CreateDose creates a new dose
 func CreateDose(userID int, newDose NewDose) (DoseDetails, error) {
 	// Begin a SQL transaction
@@ -102,7 +113,16 @@ func CreateDose(userID int, newDose NewDose) (DoseDetails, error) {
 		return DoseDetails{}, utils.InternalServerError(err)
 	}
 
-	return ReadDose(userID, int(doseID))
+	// Notify the dispatcher and return
+	dose, err := ReadDose(userID, int(doseID))
+
+	if err != nil {
+		return dose, err
+	}
+
+	dosesSubject.DoseAdded(userID, dose.ToSummary())
+
+	return dose, err
 }
 
 // ListDoses returns a list of all doses for a user
@@ -265,6 +285,7 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 		}
 	}
 
+	// Commit the transaction
 	err = tx.Commit()
 
 	if err != nil {
@@ -272,16 +293,29 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 		return DoseDetails{}, utils.InternalServerError(err)
 	}
 
-	return ReadDose(userID, doseID)
+	// Notify the dispatcher and return
+	dose, err = ReadDose(userID, int(doseID))
+
+	if err != nil {
+		return dose, err
+	}
+
+	dosesSubject.DoseUpdated(userID, dose.ToSummary())
+
+	return dose, err
 }
 
 // DeleteDose deletes a dose for a given user and dose ID
 func DeleteDose(userID, doseID int) error {
+	// Delete the dose in the database
 	_, err := db.Exec(`DELETE FROM Doses WHERE UserID = ? AND ID = ?`, userID, doseID)
 
 	if err != nil {
 		return utils.InternalServerError(err)
 	}
+
+	// Notify the dispatcher and return
+	dosesSubject.DoseDeleted(userID, doseID)
 
 	return nil
 }

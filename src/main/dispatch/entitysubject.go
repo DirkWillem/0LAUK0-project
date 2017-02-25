@@ -4,7 +4,7 @@ type (
 	// CollectionSubject represents a subscribable subject pertaining to a single entity
 	EntitySubject struct {
 		Title    string
-		messages chan subjectMessage
+		messages chan SubjectMessage
 	}
 
 	// entitySubjectSubscriptionParams contains the subscription parameters to a EntitySubject
