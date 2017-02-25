@@ -148,7 +148,7 @@ func (c *client) handleIncomingMessage(msg incomingMessage) {
 		}
 
 		c.OutgoingMessages <- outgoingMessage{
-			SubscriptionID: -1,
+			SubscriptionID: 0,
 			RequestID:      msg.RequestID,
 			Action:         "subscribe",
 			Payload:        subscriptionPayload{SubscriptionID: subscription.SubscriptionID},
@@ -171,7 +171,7 @@ func (c *client) handleIncomingMessage(msg incomingMessage) {
 		c.Unsubscribe(int(subscriptionId))
 
 		c.OutgoingMessages <- outgoingMessage{
-			SubscriptionID: -1,
+			SubscriptionID: 0,
 			RequestID:      msg.RequestID,
 			Action:         "unsubscribe",
 			Payload:        map[string]interface{}{},

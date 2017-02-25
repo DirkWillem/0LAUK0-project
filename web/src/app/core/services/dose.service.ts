@@ -4,6 +4,7 @@ import { NestedAPIInterface } from "./nestedapiinterface.service";
 import { Model, Field, ModelListField, ModelField } from "../model";
 import { Medication } from "./medication.service";
 import { AuthHttp } from "./authhttp.service";
+import { DispatcherService } from "./dispatcher.service";
 
 /**
  * Class representing a medication in a dose
@@ -43,8 +44,11 @@ export class DoseService extends NestedAPIInterface<Dose> {
 
   model = Dose;
 
-  constructor(authHttp: AuthHttp) {
-    super(authHttp);
+  protected collectionSubject: string = "doses";
+  protected collectionSubjectSuperIdProperty: string = "userId";
+
+  constructor(authHttp: AuthHttp, dispatcherService: DispatcherService) {
+    super(authHttp, dispatcherService);
   }
 
   async create(superId: number, newDose: NewDose): Promise<Dose> {

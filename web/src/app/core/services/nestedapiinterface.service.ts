@@ -1,5 +1,9 @@
+import { Observable } from 'rxjs';
+
 import { Model, SubModelClass, PartialModel, ModelJson } from "../model";
 import { AuthHttp } from "./authhttp.service";
+import { DispatcherService } from "./dispatcher.service";
+import { CollectionMutation, CollectionAddition, CollectionUpdate, CollectionRemoval } from "../collectionupdates";
 
 /**
  * Provides the base service for all nested API interface services
@@ -9,7 +13,10 @@ export class NestedAPIInterface<M extends Model> {
   protected nestedURL: string;
   protected model: SubModelClass<M>;
 
-  constructor(protected http: AuthHttp) {
+  protected collectionSubject: string = "";
+  protected collectionSubjectSuperIdProperty: string = "superId";
+
+  constructor(protected http: AuthHttp, protected dispatcherService: DispatcherService) {
 
   }
 
@@ -65,5 +72,36 @@ export class NestedAPIInterface<M extends Model> {
    */
   async delete(superId: number, id: number): Promise<void> {
     return await this.http.delete(`/api${this.baseURL}/${superId}${this.nestedURL}/${id}`)
+  }
+
+  /**
+   * Returns an observable which contains the collection updates returned by the dispatcher
+   * @param superId - ID of the super entity to subscribe to
+   */
+  async getCollectionUpdates(superId: number): Promise<Observable<CollectionMutation<M>>> {
+    return (await this.dispatcherService
+      .subscribeTo(this.collectionSubject, {
+        [this.collectionSubjectSuperIdProperty]: superId
+      }))
+      .map(msg => {
+        console.log(msg);
+        switch(msg.action) {
+          case "added":
+            return <CollectionAddition<M>>{
+              action: "added",
+              addedEntity: new this.model((msg.payload as {addedEntity: ModelJson<M>}).addedEntity)
+            };
+          case "updated":
+            return <CollectionUpdate<M>> {
+              action: "updated",
+              updatedEntity: new this.model((msg.payload as {updatedEntity: ModelJson<M>}).updatedEntity)
+            };
+          case "deleted":
+            return <CollectionRemoval> {
+              action: "deleted",
+              id: (msg.payload as {id: number}).id
+            };
+        }
+      });
   }
 }

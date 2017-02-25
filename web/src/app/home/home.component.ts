@@ -29,10 +29,6 @@ export class HomeComponent {
   ];
 
   constructor(private authService: AuthService) {
-    setTimeout(() => {
-      console.log(this.visibleMenuItems);
-
-    });
   }
 
   /**

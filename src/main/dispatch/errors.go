@@ -17,7 +17,7 @@ func (err *DispatcherError) Error() string {
 // Creates a message based on the dispatcher error
 func (err *DispatcherError) OutgoingMessage(requestID int) outgoingMessage {
 	return outgoingMessage{
-		SubscriptionID: -1,
+		SubscriptionID: 0,
 		Action:         "error",
 		RequestID:      requestID,
 		Payload:        err,

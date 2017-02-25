@@ -1,5 +1,6 @@
 import { NgModule, Optional, SkipSelf } from '@angular/core';
 
+import { DispatcherService } from "./services/dispatcher.service";
 import { AuthService } from "./services/auth.service";
 import { AuthHttp } from "./services/authhttp.service";
 import { MedicationService } from './services/medication.service';
@@ -15,13 +16,12 @@ import { DosesResolve } from "./resolves/dose.resolve";
 import { AuthGuard} from './guards/auth.guard';
 import { AutoLoginGuard } from "./guards/autologin.guard";
 
-
-
 /**
  * Module containing all services
  */
 @NgModule({
   providers: [
+    DispatcherService,
     AuthService, AuthGuard, AutoLoginGuard, AuthHttp,
     MedicationService, MedicationsResolve, MedicationResolve,
     UserService, PatientsResolve, UserResolve,

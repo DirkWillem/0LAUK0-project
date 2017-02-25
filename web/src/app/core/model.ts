@@ -133,6 +133,8 @@ export type ModelJson<M extends Model> = {
 export class Model {
   private static fields: ModelField[];
 
+  id: number;
+
   private get modelFields() {
     return this.constructor.prototype.fields;
   }

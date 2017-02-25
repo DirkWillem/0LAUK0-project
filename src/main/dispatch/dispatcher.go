@@ -75,6 +75,20 @@ func (d *Dispatcher) CreateClient() *client {
 	return client
 }
 
+// RemoveClient unregisters a client with a dispatcher
+func (d *Dispatcher) RemoveClient(clnt *client) {
+	index := -1
+
+	for i, c := range d.clients {
+		if c == clnt {
+			index = i
+		}
+	}
+
+	d.clients[index] = d.clients[len(d.clients)-1]
+	d.clients = d.clients[:len(d.clients)-1]
+}
+
 // Start starts the dispatcher process
 func (d *Dispatcher) Start() {
 	// Create a list of channels to which can be subscribed

@@ -42,12 +42,17 @@ func CreateDispatchHandler(dispatcher *Dispatcher) func(w http.ResponseWriter, r
 
 		// Start a goroutine listening for incoming messages
 		incomingMessages := make(chan webSocketMessage, 10)
+		closed := make(chan bool)
 
 		go func() {
 			for {
 				msgType, content, err := c.ReadMessage()
 
 				if err != nil {
+					if websocket.IsCloseError(err) || websocket.IsUnexpectedCloseError(err) {
+						closed <- true
+						return
+					}
 					utils.LogError(err)
 				}
 
@@ -60,8 +65,6 @@ func CreateDispatchHandler(dispatcher *Dispatcher) func(w http.ResponseWriter, r
 			select {
 			case message := <-incomingMessages:
 				switch message.Type {
-				case websocket.CloseMessage:
-					break
 				default:
 					var incoming incomingMessage
 					err = json.Unmarshal(message.Content, &incoming)
@@ -79,7 +82,11 @@ func CreateDispatchHandler(dispatcher *Dispatcher) func(w http.ResponseWriter, r
 					utils.LogError(err)
 					continue
 				}
+			case _ = <-closed:
+				return
 			}
 		}
+
+		dispatcher.RemoveClient(clnt)
 	}
 }
