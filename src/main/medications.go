@@ -3,6 +3,7 @@ package main
 import (
 	"database/sql"
 	"fmt"
+	"main/utils"
 )
 
 type (
@@ -33,6 +34,14 @@ type (
 	}
 )
 
+func (md MedicationDetails) ToSummary() MedicationSummary {
+	return MedicationSummary{
+		ID:          md.ID,
+		Title:       md.Title,
+		Description: md.Description,
+	}
+}
+
 // CreateMedication creates a new medication
 func CreateMedication(newMedication NewMedication) (MedicationDetails, error) {
 	// Insert the medication into the database
@@ -40,17 +49,26 @@ func CreateMedication(newMedication NewMedication) (MedicationDetails, error) {
   VALUES (?, ?)`, newMedication.Title, newMedication.Description)
 
 	if err != nil {
-		return MedicationDetails{}, InternalServerError(err)
+		return MedicationDetails{}, utils.InternalServerError(err)
 	}
 
 	// Read and return the created medication
 	medicationID, err := result.LastInsertId()
 
 	if err != nil {
-		return MedicationDetails{}, InternalServerError(err)
+		return MedicationDetails{}, utils.InternalServerError(err)
 	}
 
-	return ReadMedication(int(medicationID))
+	// Notify the dispatcher a new entry has been inserted and return
+	medication, err := ReadMedication(int(medicationID))
+
+	if err != nil {
+		return medication, err
+	}
+
+	medicationsSubject.EntityAdded(int(medicationID), medication)
+
+	return medication, err
 }
 
 // ListMedications returns a list of all medications
@@ -59,7 +77,7 @@ func ListMedications() ([]MedicationSummary, error) {
 	rows, err := db.Query(`SELECT ID, Title, Description FROM Medications`)
 
 	if err != nil {
-		return []MedicationSummary{}, InternalServerError(err)
+		return []MedicationSummary{}, utils.InternalServerError(err)
 	}
 
 	// Iterate over all rows and store in slice
@@ -69,7 +87,7 @@ func ListMedications() ([]MedicationSummary, error) {
 	for rows.Next() {
 		err = rows.Scan(&medication.ID, &medication.Title, &medication.Description)
 		if err != nil {
-			return []MedicationSummary{}, InternalServerError(err)
+			return []MedicationSummary{}, utils.InternalServerError(err)
 		}
 
 		medications = append(medications, medication)
@@ -89,9 +107,9 @@ func ReadMedication(id int) (MedicationDetails, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return MedicationDetails{}, NotFoundErrorMessage(fmt.Sprintf("No medication with ID %d found", id))
+			return MedicationDetails{}, utils.NotFoundErrorMessage(fmt.Sprintf("No medication with ID %d found", id))
 		}
-		return MedicationDetails{}, InternalServerError(err)
+		return MedicationDetails{}, utils.InternalServerError(err)
 	}
 
 	return medication, err
@@ -99,6 +117,7 @@ func ReadMedication(id int) (MedicationDetails, error) {
 
 // UpdateMedication updates a medication with a given ID
 func UpdateMedication(id int, updatedMedication UpdatedMedication) (MedicationDetails, error) {
+	// Update the medication in the database
 	_, err := db.Exec(`UPDATE Medications
 	SET
 		Title = ?,
@@ -106,19 +125,31 @@ func UpdateMedication(id int, updatedMedication UpdatedMedication) (MedicationDe
 	WHERE ID = ?`, updatedMedication.Title, updatedMedication.Description, id)
 
 	if err != nil {
-		return MedicationDetails{}, InternalServerError(err)
+		return MedicationDetails{}, utils.InternalServerError(err)
 	}
 
-	return ReadMedication(id)
+	// Notify the dispatcher and return
+	medication, err := ReadMedication(id)
+
+	if err != nil {
+		return medication, err
+	}
+
+	medicationsSubject.EntityUpdated(id, medication.ToSummary())
+
+	return medication, err
 }
 
 // DeleteMedication deletes a medication with a given ID
 func DeleteMedication(id int) error {
-	_, err := db.Exec(`REMOVE FROM Medications WHERE ID = ?`, id)
+	// Delete the entity in the database
+	_, err := db.Exec(`DELETE FROM Medications WHERE ID = ?`, id)
 
 	if err != nil {
-		return InternalServerError(err)
+		return utils.InternalServerError(err)
 	}
 
+	// Notify the dispatcher and return
+	medicationsSubject.EntityDeleted(id)
 	return nil
 }

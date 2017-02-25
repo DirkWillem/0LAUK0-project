@@ -6,6 +6,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"gopkg.in/hlandau/passlib.v1"
 	"net/http"
+	"main/utils"
 )
 
 type (
@@ -37,7 +38,7 @@ func UpdatePasswordHash(username, newPasswordHash string) error {
     WHERE Username = ?`, username)
 
 	if err != nil {
-		LogErrorMessage(err.Error())
+		utils.LogErrorMessage(err.Error())
 	}
 
 	return err
@@ -53,16 +54,16 @@ func ReadJWTSession(r *http.Request) (Session, error) {
 	// Read token string from the header
 	tokStr := r.Header.Get("X-JWT")
 	if len(tokStr) == 0 {
-		return Session{}, UnauthorizedErrorMessage("No X-JWT header was present")
+		return Session{}, utils.UnauthorizedErrorMessage("No X-JWT header was present")
 	}
 
 	// Parse token
 	token, err := jwt.Parse(tokStr, JWTKeyFunc)
 	if err != nil {
 		if err == jwt.ErrSignatureInvalid {
-			return Session{}, UnauthorizedError(err)
+			return Session{}, utils.UnauthorizedError(err)
 		}
-		return Session{}, InternalServerError(err)
+		return Session{}, utils.InternalServerError(err)
 	}
 
 	claims := token.Claims.(jwt.MapClaims)
@@ -106,23 +107,23 @@ func Authenticate(credentials Credentials) (SessionToken, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return token, NotFoundErrorMessage(fmt.Sprintf("Username %s not found", credentials.Username))
+			return token, utils.NotFoundErrorMessage(fmt.Sprintf("Username %s not found", credentials.Username))
 		} else {
-			return token, InternalServerError(err)
+			return token, utils.InternalServerError(err)
 		}
 	}
 
 	// Check whether the password hashes match
 	newPassHash, err := passlib.Verify(credentials.Password, passwordHash)
 	if err != nil {
-		return token, InternalServerError(err)
+		return token, utils.InternalServerError(err)
 	}
 
 	// Update the password hash if necessary
 	if newPassHash != "" {
 		err := UpdatePasswordHash(credentials.Username, newPassHash)
 		if err != nil {
-			return token, InternalServerError(err)
+			return token, utils.InternalServerError(err)
 		}
 	}
 

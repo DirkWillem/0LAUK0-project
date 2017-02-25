@@ -5,6 +5,7 @@ import (
 	"github.com/dgrijalva/jwt-go"
 	"net/http"
 	"strings"
+	"main/utils"
 )
 
 // CheckJWT checks whether a valid JSON web token is present in the request headers
@@ -13,7 +14,7 @@ func CheckJWT(next func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 		// Check whether the token string is present
 		tokStr := r.Header.Get("X-JWT")
 		if len(tokStr) == 0 {
-			WriteError(w, UnauthorizedErrorMessage("No X-JWT header was present"))
+			utils.WriteError(w, utils.UnauthorizedErrorMessage("No X-JWT header was present"))
 			return
 		}
 
@@ -21,9 +22,9 @@ func CheckJWT(next func(http.ResponseWriter, *http.Request)) func(http.ResponseW
 		_, err := jwt.Parse(tokStr, JWTKeyFunc)
 		if err != nil {
 			if err == jwt.ErrSignatureInvalid {
-				WriteError(w, UnauthorizedError(err))
+				utils.WriteError(w, utils.UnauthorizedError(err))
 			} else {
-				WriteError(w, InternalServerError(err))
+				utils.WriteError(w, utils.InternalServerError(err))
 			}
 			return
 		}
@@ -38,7 +39,7 @@ func CheckRole(roles string, next func(http.ResponseWriter, *http.Request)) func
 		// Read token from request
 		session, err := ReadJWTSession(r)
 		if err != nil {
-			WriteError(w, err)
+			utils.WriteError(w, err)
 		}
 
 		for _, role := range strings.Split(roles, ",") {
@@ -48,6 +49,6 @@ func CheckRole(roles string, next func(http.ResponseWriter, *http.Request)) func
 			}
 		}
 
-		WriteError(w, UnauthorizedErrorMessage(fmt.Sprintf("Your role (%s) is not authorized to access %s %s.", session.Role, r.Method, r.URL.String())))
+		utils.WriteError(w, utils.UnauthorizedErrorMessage(fmt.Sprintf("Your role (%s) is not authorized to access %s %s.", session.Role, r.Method, r.URL.String())))
 	}
 }

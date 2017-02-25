@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"strconv"
 	"fmt"
+	"main/utils"
 )
 
 // HandleListDoseSummaries returns all dose summaries for a given user to a client
@@ -14,7 +15,7 @@ func HandleListDoseSummaries(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := strconv.Atoi(vars["userId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
 		return
 	}
 
@@ -22,11 +23,11 @@ func HandleListDoseSummaries(w http.ResponseWriter, r *http.Request) {
 	summaries, err := ListDoseSummaries(userID)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, summaries)
+	utils.WriteJSON(w, summaries)
 }
 
 // HandleReadDoseSummary returns a dose summary to the client
@@ -36,7 +37,7 @@ func HandleReadDoseSummary(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := strconv.Atoi(vars["userId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
 		return
 	}
 
@@ -44,9 +45,9 @@ func HandleReadDoseSummary(w http.ResponseWriter, r *http.Request) {
 	statuses, err := ReadDoseSummary(userID, vars["date"])
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, statuses)
+	utils.WriteJSON(w, statuses)
 }

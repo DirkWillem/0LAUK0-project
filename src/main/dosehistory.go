@@ -1,5 +1,7 @@
 package main
 
+import "main/utils"
+
 type (
 	// NewDoseHistoryEntry represents a to-be inserted dose history entry
 	NewDoseHistoryEntry struct {
@@ -10,18 +12,18 @@ type (
 
 	// DoseHistoryEntrySummary contains basic information on a dose history entry
 	DoseHistoryEntrySummary struct {
-		ID            int           `json:"id"`
-		DispensedDay  string        `json:"dispensedDay"`
-		DispensedTime string        `json:"dispensedTime"`
-		Dose          MinimalEntity `json:"dose"`
+		ID            int                 `json:"id"`
+		DispensedDay  string              `json:"dispensedDay"`
+		DispensedTime string              `json:"dispensedTime"`
+		Dose          utils.MinimalEntity `json:"dose"`
 	}
 
 	// DoseHistoryEntryDetails contains basic information on a dose history entry
 	DoseHistoryEntryDetails struct {
-		ID            int           `json:"id"`
-		DispensedDay  string        `json:"dispensedDay"`
-		DispensedTime string        `json:"dispensedTime"`
-		Dose          MinimalEntity `json:"dose"`
+		ID            int                 `json:"id"`
+		DispensedDay  string              `json:"dispensedDay"`
+		DispensedTime string              `json:"dispensedTime"`
+		Dose          utils.MinimalEntity `json:"dose"`
 	}
 )
 
@@ -48,13 +50,13 @@ func CreateDoseHistoryEntry(userID int, newDoseHistoryEntry NewDoseHistoryEntry)
 	VALUES (?, ?, ?)`, newDoseHistoryEntry.DoseID, newDoseHistoryEntry.DispensedDay, newDoseHistoryEntry.DispensedTime)
 
 	if err != nil {
-		return DoseHistoryEntryDetails{}, InternalServerError(err)
+		return DoseHistoryEntryDetails{}, utils.InternalServerError(err)
 	}
 
 	doseHistoryEntryID, err := result.LastInsertId()
 
 	if err != nil {
-		return DoseHistoryEntryDetails{}, InternalServerError(err)
+		return DoseHistoryEntryDetails{}, utils.InternalServerError(err)
 	}
 
 	return ReadDoseHistoryEntry(userID, int(doseHistoryEntryID))
@@ -71,7 +73,7 @@ func ListDoseHistoryEntries(userID int, search map[string]string) ([]DoseHistory
 	rows, err := db.Query(query, queryParams...)
 
 	if err != nil {
-		return []DoseHistoryEntrySummary{}, InternalServerError(err)
+		return []DoseHistoryEntrySummary{}, utils.InternalServerError(err)
 	}
 
 	// Iterate over all results and store in a slice
@@ -81,7 +83,7 @@ func ListDoseHistoryEntries(userID int, search map[string]string) ([]DoseHistory
 	for rows.Next() {
 		err = rows.Scan(&dhe.ID, &dhe.DispensedDay, &dhe.DispensedTime, &dhe.Dose.ID, &dhe.Dose.Title)
 		if err != nil {
-			return []DoseHistoryEntrySummary{}, InternalServerError(err)
+			return []DoseHistoryEntrySummary{}, utils.InternalServerError(err)
 		}
 
 		doseHistoryEntries = append(doseHistoryEntries, dhe)
@@ -100,7 +102,7 @@ func ReadDoseHistoryEntry(userID, doseHistoryEntryID int) (DoseHistoryEntryDetai
 	WHERE D.UserID = ? AND DH.ID = ?`, userID, doseHistoryEntryID).Scan(&dhe.ID, &dhe.DispensedDay, &dhe.DispensedTime, &dhe.Dose.ID, &dhe.Dose.Title)
 
 	if err != nil {
-		return dhe, InternalServerError(err)
+		return dhe, utils.InternalServerError(err)
 	}
 
 	return dhe, nil

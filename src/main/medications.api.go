@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"main/utils"
 )
 
 // HandleCreateMedication handles the creation of a medication
@@ -12,9 +13,9 @@ func HandleCreateMedication(w http.ResponseWriter, r *http.Request) {
 	// Read the new medication from the request body
 	var newMedication NewMedication
 
-	err := ReadJSONFromRequest(r, &newMedication)
+	err := utils.ReadJSONFromRequest(r, &newMedication)
 	if err != nil {
-		WriteError(w, BadRequestError(err))
+		utils.WriteError(w, utils.BadRequestError(err))
 		return
 	}
 
@@ -22,11 +23,11 @@ func HandleCreateMedication(w http.ResponseWriter, r *http.Request) {
 	medication, err := CreateMedication(newMedication)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, medication)
+	utils.WriteJSON(w, medication)
 }
 
 // HandleListMedications handles a read of all medications
@@ -35,11 +36,11 @@ func HandleListMedications(w http.ResponseWriter, r *http.Request) {
 	medications, err := ListMedications()
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, medications)
+	utils.WriteJSON(w, medications)
 }
 
 // HandleReadMedication returns data on a single medication to the client
@@ -49,18 +50,18 @@ func HandleReadMedication(w http.ResponseWriter, r *http.Request) {
 
 	id, err := strconv.Atoi(vars["medicationId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'medicationId' isn't a valid integer.", vars["medicationId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'medicationId' isn't a valid integer.", vars["medicationId"])))
 		return
 	}
 
 	// Read the medication from the database and write to the client
 	medication, err := ReadMedication(id)
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, medication)
+	utils.WriteJSON(w, medication)
 }
 
 // HandleUpdateMedication handles the update of a single medication
@@ -70,16 +71,16 @@ func HandleUpdateMedication(w http.ResponseWriter, r *http.Request) {
 
 	medicationID, err := strconv.Atoi(vars["medicationId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'medicationId' isn't a valid integer.", vars["medicationId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'medicationId' isn't a valid integer.", vars["medicationId"])))
 		return
 	}
 
 	// Read updated medication from the request body
 	var updatedMedication UpdatedMedication
 
-	err = ReadJSONFromRequest(r, &updatedMedication)
+	err = utils.ReadJSONFromRequest(r, &updatedMedication)
 	if err != nil {
-		WriteError(w, BadRequestError(err))
+		utils.WriteError(w, utils.BadRequestError(err))
 		return
 	}
 
@@ -87,11 +88,11 @@ func HandleUpdateMedication(w http.ResponseWriter, r *http.Request) {
 	medication, err := UpdateMedication(medicationID, updatedMedication)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, medication)
+	utils.WriteJSON(w, medication)
 }
 
 // HandleDeleteMedication handles the removal of a single medication
@@ -101,7 +102,7 @@ func HandleDeleteMedication(w http.ResponseWriter, r *http.Request) {
 
 	medicationID, err := strconv.Atoi(vars["medicationId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'medicationId' isn't a valid integer.", vars["medicationId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'medicationId' isn't a valid integer.", vars["medicationId"])))
 		return
 	}
 
@@ -109,7 +110,7 @@ func HandleDeleteMedication(w http.ResponseWriter, r *http.Request) {
 	err = DeleteMedication(medicationID)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 

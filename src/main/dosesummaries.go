@@ -1,5 +1,7 @@
 package main
 
+import "main/utils"
+
 type (
 	// DoseSummarySummary contains summary information on a dose summary
 	DoseSummarySummary struct {
@@ -11,11 +13,11 @@ type (
 
 	// DoseStatus contains status information on a dose for a given day
 	DoseStatus struct {
-		DispensedTime  string        `json:"dispensedTime"`
-		Dispensed      bool          `json:"dispensed"`
-		Pending        bool          `json:"pending"`
-		BeingDispensed bool          `json:"beingDispensed"`
-		Dose           MinimalEntity `json:"dose"`
+		DispensedTime  string              `json:"dispensedTime"`
+		Dispensed      bool                `json:"dispensed"`
+		Pending        bool                `json:"pending"`
+		BeingDispensed bool                `json:"beingDispensed"`
+		Dose           utils.MinimalEntity `json:"dose"`
 	}
 )
 
@@ -44,7 +46,7 @@ func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 	ORDER BY H.DispensedDay DESC`, userID, userID)
 
 	if err != nil {
-		return []DoseSummarySummary{}, InternalServerError(err)
+		return []DoseSummarySummary{}, utils.InternalServerError(err)
 	}
 
 	// Iterate over rows and fill slice of dose summaries
@@ -54,7 +56,7 @@ func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 	for rows.Next() {
 		err = rows.Scan(&summary.Date, &summary.DispensedCount, &summary.PendingCount, &summary.TotalCount)
 		if err != nil {
-			return summaries, InternalServerError(err)
+			return summaries, utils.InternalServerError(err)
 		}
 
 		summaries = append(summaries, summary)
@@ -84,7 +86,7 @@ func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
 	ORDER BY D.DispenseAfter`, date, date, date, date, userID)
 
 	if err != nil {
-		return []DoseStatus{}, InternalServerError(err)
+		return []DoseStatus{}, utils.InternalServerError(err)
 	}
 
 	// Iterate over rows and store in slice
@@ -95,7 +97,7 @@ func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
 	for rows.Next() {
 		err = rows.Scan(&status.Dose.ID, &status.Dose.Title, &status.DispensedTime, &dispensed, &pending, &beingDispensed)
 		if err != nil {
-			return statuses, InternalServerError(err)
+			return statuses, utils.InternalServerError(err)
 		}
 
 		status.Dispensed = dispensed == 1

@@ -1,16 +1,19 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+	"main/utils"
+)
 
 //HandleAuthenticateDispenser handles an authentication request from a dispenser
 func HandleAuthenticateDispenser(w http.ResponseWriter, r *http.Request) {
 	// Read auth token from request
 	var auth DispenserAuth
 
-	err := ReadJSONFromRequest(r, &auth)
+	err := utils.ReadJSONFromRequest(r, &auth)
 
 	if err != nil {
-		WriteError(w, BadRequestError(err))
+		utils.WriteError(w, utils.BadRequestError(err))
 		return
 	}
 
@@ -18,10 +21,10 @@ func HandleAuthenticateDispenser(w http.ResponseWriter, r *http.Request) {
 	token, err := AuthenticateDispenser(auth)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
 	// Return session token to user
-	WriteJSON(w, token)
+	utils.WriteJSON(w, token)
 }

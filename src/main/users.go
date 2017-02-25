@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"gopkg.in/hlandau/passlib.v1"
+	"main/utils"
 )
 
 type (
@@ -87,31 +88,31 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 	tx, err := db.Begin()
 
 	if err != nil {
-		RollbackOrLog(tx)
-		return UserDetails{}, InternalServerError(err)
+		utils.RollbackOrLog(tx)
+		return UserDetails{}, utils.InternalServerError(err)
 	}
 
 	// Create the user record
 	passHash, err := passlib.Hash(newUser.Password)
 
 	if err != nil {
-		RollbackOrLog(tx)
-		return UserDetails{}, InternalServerError(err)
+		utils.RollbackOrLog(tx)
+		return UserDetails{}, utils.InternalServerError(err)
 	}
 
 	result, err := tx.Exec(`INSERT INTO Users (Username, FullName, PasswordHash, Role, Email)
 	VALUES (?, ?, ?, ?, ?)`, newUser.Username, newUser.FullName, passHash, newUser.Role, newUser.Email)
 
 	if err != nil {
-		RollbackOrLog(tx)
-		return UserDetails{}, InternalServerError(err)
+		utils.RollbackOrLog(tx)
+		return UserDetails{}, utils.InternalServerError(err)
 	}
 
 	userID, err := result.LastInsertId()
 
 	if err != nil {
-		RollbackOrLog(tx)
-		return UserDetails{}, InternalServerError(err)
+		utils.RollbackOrLog(tx)
+		return UserDetails{}, utils.InternalServerError(err)
 	}
 
 	// Determine to-be inserted relation IDs
@@ -131,16 +132,16 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 	for _, insertedRelationID := range insertedRelationIDs {
 		_, err = db.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, userID, insertedRelationID)
 		if err != nil {
-			RollbackOrLog(tx)
-			return UserDetails{}, InternalServerError(err)
+			utils.RollbackOrLog(tx)
+			return UserDetails{}, utils.InternalServerError(err)
 		}
 	}
 
 	for _, insertedPatientID := range insertedPatientIDs {
 		_, err = db.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, insertedPatientID, userID)
 		if err != nil {
-			RollbackOrLog(tx)
-			return UserDetails{}, InternalServerError(err)
+			utils.RollbackOrLog(tx)
+			return UserDetails{}, utils.InternalServerError(err)
 		}
 	}
 
@@ -148,8 +149,8 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 	err = tx.Commit()
 
 	if err != nil {
-		RollbackOrLog(tx)
-		return UserDetails{}, InternalServerError(err)
+		utils.RollbackOrLog(tx)
+		return UserDetails{}, utils.InternalServerError(err)
 	}
 
 	return ReadUser(int(userID))
@@ -164,7 +165,7 @@ func ListUsers(search map[string]string) ([]UserSummary, error) {
 	rows, err := db.Query(query, queryParams...)
 
 	if err != nil {
-		return []UserSummary{}, InternalServerError(err)
+		return []UserSummary{}, utils.InternalServerError(err)
 	}
 
 	// Iterate over all rows and store in slice
@@ -181,12 +182,12 @@ func ReadUser(userID int) (UserDetails, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return UserDetails{}, NotFoundErrorMessage(fmt.Sprintf("No user with ID %d found", userID))
+			return UserDetails{}, utils.NotFoundErrorMessage(fmt.Sprintf("No user with ID %d found", userID))
 		}
-		return UserDetails{}, InternalServerError(err)
+		return UserDetails{}, utils.InternalServerError(err)
 	}
 
-	user.EmailMD5 = HashMD5(user.Email)
+	user.EmailMD5 = utils.HashMD5(user.Email)
 
 	// Retrieve relations
 	switch user.Role {
@@ -225,7 +226,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 	// Begin transaction
 	tx, err := db.Begin()
 	if err != nil {
-		RollbackOrLog(tx)
+		utils.RollbackOrLog(tx)
 		return UserDetails{}, err
 	}
 
@@ -238,7 +239,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 	WHERE ID = ?`, updatedUser.Username, updatedUser.FullName, updatedUser.Email, userID)
 
 	if err != nil {
-		RollbackOrLog(tx)
+		utils.RollbackOrLog(tx)
 		return UserDetails{}, err
 	}
 
@@ -260,7 +261,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 			if isNew {
 				_, err := tx.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, userID, updatedRelation.ID)
 				if err != nil {
-					RollbackOrLog(tx)
+					utils.RollbackOrLog(tx)
 					return UserDetails{}, err
 				}
 			}
@@ -279,7 +280,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 			if !processed {
 				_, err := tx.Exec(`DELETE FROM PatientRelations WHERE PatientID = ? AND RelationID = ?`, userID, relation.ID)
 				if err != nil {
-					RollbackOrLog(tx)
+					utils.RollbackOrLog(tx)
 					return UserDetails{}, err
 				}
 			}
@@ -301,7 +302,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 			if isNew {
 				_, err := tx.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, updatedPatient.ID, userID)
 				if err != nil {
-					RollbackOrLog(tx)
+					utils.RollbackOrLog(tx)
 					return UserDetails{}, err
 				}
 			}
@@ -320,7 +321,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 			if !processed {
 				_, err := tx.Exec(`DELETE FROM PatientRelations WHERE PatientID = ? AND RelationID = ?`, patient.ID, userID)
 				if err != nil {
-					RollbackOrLog(tx)
+					utils.RollbackOrLog(tx)
 					return UserDetails{}, err
 				}
 			}
@@ -331,8 +332,8 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 	err = tx.Commit()
 
 	if err != nil {
-		RollbackOrLog(tx)
-		return UserDetails{}, InternalServerError(err)
+		utils.RollbackOrLog(tx)
+		return UserDetails{}, utils.InternalServerError(err)
 	}
 
 	return ReadUser(userID)
@@ -343,7 +344,7 @@ func DeleteUser(userID int) error {
 	_, err := db.Exec(`DELETE FROM Users WHERE ID = ?`, userID)
 
 	if err != nil {
-		return InternalServerError(err)
+		return utils.InternalServerError(err)
 	}
 
 	return nil
@@ -357,7 +358,7 @@ func ListRelatedPatients(userID int) ([]UserSummary, error) {
 	WHERE PR.RelationID = ?`, userID)
 
 	if err != nil {
-		return []UserSummary{}, InternalServerError(err)
+		return []UserSummary{}, utils.InternalServerError(err)
 	}
 
 	return readUsersFromRows(rows)
@@ -371,7 +372,7 @@ func ListRelations(userID int, role string) ([]UserSummary, error) {
 	WHERE PR.PatientID = ? AND U.Role = ?`, userID, role)
 
 	if err != nil {
-		return []UserSummary{}, InternalServerError(err)
+		return []UserSummary{}, utils.InternalServerError(err)
 	}
 
 	return readUsersFromRows(rows)
@@ -385,10 +386,10 @@ func readUsersFromRows(rows *sql.Rows) ([]UserSummary, error) {
 	for rows.Next() {
 		err := rows.Scan(&user.ID, &user.Username, &user.FullName, &user.Role, &user.Email)
 		if err != nil {
-			return users, InternalServerError(err)
+			return users, utils.InternalServerError(err)
 		}
 
-		user.EmailMD5 = HashMD5(user.Email)
+		user.EmailMD5 = utils.HashMD5(user.Email)
 		users = append(users, user)
 	}
 

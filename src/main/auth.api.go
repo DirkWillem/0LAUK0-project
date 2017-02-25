@@ -1,16 +1,19 @@
 package main
 
-import "net/http"
+import (
+	"net/http"
+	"main/utils"
+)
 
 // HandleAuthenticate handles an authentication request
 func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 	// Read credentials from request
 	var credentials Credentials
 
-	err := ReadJSONFromRequest(r, &credentials)
+	err := utils.ReadJSONFromRequest(r, &credentials)
 
 	if err != nil {
-		WriteError(w, BadRequestError(err))
+		utils.WriteError(w, utils.BadRequestError(err))
 		return
 	}
 
@@ -18,10 +21,10 @@ func HandleAuthenticate(w http.ResponseWriter, r *http.Request) {
 	token, err := Authenticate(credentials)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
 	// Return session token to user
-	WriteJSON(w, token)
+	utils.WriteJSON(w, token)
 }

@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/dgrijalva/jwt-go"
 	"gopkg.in/hlandau/passlib.v1"
+	"main/utils"
 )
 
 type (
@@ -22,7 +23,7 @@ func UpdateDispenserAuthToken(id int, newToken string) error {
 	WHERE ID = ?`, newToken, id)
 
 	if err != nil {
-		LogErrorMessage(err.Error())
+		utils.LogErrorMessage(err.Error())
 	}
 
 	return err
@@ -53,23 +54,23 @@ func AuthenticateDispenser(auth DispenserAuth) (SessionToken, error) {
 
 	if err != nil {
 		if err == sql.ErrNoRows {
-			return token, NotFoundErrorMessage(fmt.Sprintf("No dispenser with ID %d", auth.ID))
+			return token, utils.NotFoundErrorMessage(fmt.Sprintf("No dispenser with ID %d", auth.ID))
 		} else {
-			return token, InternalServerError(err)
+			return token, utils.InternalServerError(err)
 		}
 	}
 
 	// Check whether the password hashes match
 	newTokenHash, err := passlib.Verify(auth.AuthToken, tokenHash)
 	if err != nil {
-		return token, InternalServerError(err)
+		return token, utils.InternalServerError(err)
 	}
 
 	// Update the auth token if necessary
 	if newTokenHash != "" {
 		err := UpdateDispenserAuthToken(auth.ID, newTokenHash)
 		if err != nil {
-			return token, InternalServerError(err)
+			return token, utils.InternalServerError(err)
 		}
 	}
 

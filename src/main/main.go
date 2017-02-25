@@ -5,6 +5,8 @@ import (
 	"github.com/gorilla/mux"
 	"log"
 	"net/http"
+	"main/utils"
+	"main/dispatch"
 )
 
 func main() {
@@ -39,11 +41,16 @@ func main() {
 	r.HandleFunc("/api/users/{userId}/dosesummaries", CheckJWT(CheckRole(Doctor, HandleListDoseSummaries))).Methods("GET")
 	r.HandleFunc("/api/users/{userId}/dosesummaries/{date}", CheckJWT(CheckRole(Doctor, HandleReadDoseSummary))).Methods("GET")
 
+	r.HandleFunc("/api/dispatcher", dispatch.CreateDispatchHandler(dispatcher)).Methods("GET")
+
+	// Start the dispatcher
+	go dispatcher.Start()
+
 	// Start web server
 	log.Printf("Listening on %s:%s", config.Host.Host, config.Host.Port)
 	err := http.ListenAndServe(fmt.Sprintf("%s:%s", config.Host.Host, config.Host.Port), r)
 
 	if err != nil {
-		LogErrorMessageFatal(err.Error())
+		utils.LogErrorMessageFatal(err.Error())
 	}
 }

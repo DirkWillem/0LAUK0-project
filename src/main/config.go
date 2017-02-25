@@ -7,6 +7,7 @@ import (
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
+	"main/utils"
 )
 
 type (
@@ -44,7 +45,7 @@ func init() {
 	err := gcfg.ReadFileInto(&config, "./config/app.cfg")
 
 	if err != nil {
-		LogErrorMessageFatal(fmt.Sprintf("Error reading app config: %s", err.Error()))
+		utils.LogErrorMessageFatal(fmt.Sprintf("Error reading app config: %s", err.Error()))
 	}
 
 	// Open database connection
@@ -54,6 +55,6 @@ func init() {
 
 	db, err = sql.Open("mysql", connectionString)
 	if err != nil {
-		LogErrorMessageFatal(fmt.Sprintf("Error opening database connection: %s", err.Error()))
+		utils.LogErrorMessageFatal(fmt.Sprintf("Error opening database connection: %s", err.Error()))
 	}
 }

@@ -5,6 +5,7 @@ import (
 	"github.com/gorilla/mux"
 	"net/http"
 	"strconv"
+	"main/utils"
 )
 
 // HandleCreateDose handles the creation of a new dose
@@ -14,16 +15,16 @@ func HandleCreateDose(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := strconv.Atoi(vars["userId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
 		return
 	}
 
 	// Read new dose from the request body
 	var newDose NewDose
-	err = ReadJSONFromRequest(r, &newDose)
+	err = utils.ReadJSONFromRequest(r, &newDose)
 
 	if err != nil {
-		WriteError(w, BadRequestError(err))
+		utils.WriteError(w, utils.BadRequestError(err))
 		return
 	}
 
@@ -31,11 +32,11 @@ func HandleCreateDose(w http.ResponseWriter, r *http.Request) {
 	dose, err := CreateDose(userID, newDose)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, dose)
+	utils.WriteJSON(w, dose)
 }
 
 // HandleListDoses returns a list of all doses for a user to the client
@@ -45,18 +46,18 @@ func HandleListDoses(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := strconv.Atoi(vars["userId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
 		return
 	}
 
 	// Read doses from database
 	doses, err := ListDoses(userID)
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, doses)
+	utils.WriteJSON(w, doses)
 }
 
 // HandleReadDose returns a single dose for a given user and dose ID
@@ -66,24 +67,24 @@ func HandleReadDose(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := strconv.Atoi(vars["userId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
 		return
 	}
 
 	doseID, err := strconv.Atoi(vars["doseId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'doseId' isn't a valid integer.", vars["doseId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'doseId' isn't a valid integer.", vars["doseId"])))
 		return
 	}
 
 	// Read doses from database
 	dose, err := ReadDose(userID, doseID)
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, dose)
+	utils.WriteJSON(w, dose)
 }
 
 // HandleUpdateDose handles a dose update
@@ -93,23 +94,23 @@ func HandleUpdateDose(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := strconv.Atoi(vars["userId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
 		return
 	}
 
 	doseID, err := strconv.Atoi(vars["doseId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'doseId' isn't a valid integer.", vars["doseId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'doseId' isn't a valid integer.", vars["doseId"])))
 		return
 	}
 
 	// Read updated dose from request
 	var updatedDose UpdatedDose
 
-	err = ReadJSONFromRequest(r, &updatedDose)
+	err = utils.ReadJSONFromRequest(r, &updatedDose)
 
 	if err != nil {
-		WriteError(w, BadRequestError(err))
+		utils.WriteError(w, utils.BadRequestError(err))
 		return
 	}
 
@@ -117,11 +118,11 @@ func HandleUpdateDose(w http.ResponseWriter, r *http.Request) {
 	dose, err := UpdateDose(userID, doseID, updatedDose)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
-	WriteJSON(w, dose)
+	utils.WriteJSON(w, dose)
 }
 
 // HandleDeleteDose handles the removal of a doseda
@@ -131,13 +132,13 @@ func HandleDeleteDose(w http.ResponseWriter, r *http.Request) {
 
 	userID, err := strconv.Atoi(vars["userId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'userId' isn't a valid integer.", vars["userId"])))
 		return
 	}
 
 	doseID, err := strconv.Atoi(vars["doseId"])
 	if err != nil {
-		WriteError(w, BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'doseId' isn't a valid integer.", vars["doseId"])))
+		utils.WriteError(w, utils.BadRequestErrorMessage(fmt.Sprintf("Value '%s' of URL parameter 'doseId' isn't a valid integer.", vars["doseId"])))
 		return
 	}
 
@@ -145,7 +146,7 @@ func HandleDeleteDose(w http.ResponseWriter, r *http.Request) {
 	err = DeleteDose(userID, doseID)
 
 	if err != nil {
-		WriteError(w, err)
+		utils.WriteError(w, err)
 		return
 	}
 
