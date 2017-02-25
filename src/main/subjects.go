@@ -6,6 +6,7 @@ var (
 	dispatcher *dispatch.Dispatcher
 	medicationsSubject *dispatch.CollectionSubject
 	dosesSubject *DosesSubject
+	doseSummariesSubject *DoseSummariesSubject
 )
 
 func init() {
@@ -13,4 +14,5 @@ func init() {
 
 	medicationsSubject = dispatch.NewCollectionSubject("medications", dispatcher)
 	dosesSubject = NewDosesSubject(dispatcher)
+	doseSummariesSubject = NewDoseSummariesSubject(dispatcher)
 }

@@ -1,7 +1,9 @@
 import { Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
 
 import { AuthHttp } from './authhttp.service';
 import { Model, Field, ModelJson } from "../model";
+import { DispatcherService } from "./dispatcher.service";
 
 /**
  * Contains summary information on a dose summary
@@ -29,7 +31,7 @@ export class DoseStatus extends Model {
  */
 @Injectable()
 export class DoseSummaryService {
-  constructor(private http: AuthHttp) {
+  constructor(private http: AuthHttp, private dispatcherService: DispatcherService) {
 
   }
 
@@ -52,5 +54,15 @@ export class DoseSummaryService {
   async listDoseStatuses(userId: number, date: string): Promise<DoseStatus[]> {
     const json = await this.http.getJSON<ModelJson<DoseStatus>[]>(`/api/users/${userId}/dosesummaries/${date}`);
     return json.map(item => new DoseStatus(item));
+  }
+
+  /**
+   * Returns the updates to the dose summaries list
+   * @param userId - The user ID of the list to get the updates for
+   * @returns {Promise<Observable<DoseSummarySummary[]>>} Promise resolving to the observable of the updates
+   */
+  async getDoseSummariesUpdates(userId: number): Promise<Observable<DoseSummarySummary[]>> {
+    return (await this.dispatcherService.subscribeTo<{updatedSummaries: DoseSummarySummary[]}>("dosesummaries", {userId: userId}))
+      .map(val => val.payload.updatedSummaries);
   }
 }

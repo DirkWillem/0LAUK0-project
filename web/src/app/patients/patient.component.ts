@@ -5,7 +5,7 @@ import { Subscription } from 'rxjs';
 import { UserService, User } from "../core/services/user.service";
 import { Dose, DoseService } from "../core/services/dose.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
-import { DoseSummarySummary } from "../core/services/dosesummary.service";
+import { DoseSummarySummary, DoseSummaryService } from "../core/services/dosesummary.service";
 import { applyUpdateToCollection } from "../core/collectionupdates";
 
 /**
@@ -24,6 +24,7 @@ export class PatientComponent implements OnInit, OnDestroy {
   pendingDose: Dose = null;
 
   constructor(private userService: UserService,
+              private doseSummaryService: DoseSummaryService,
               private doseService: DoseService,
               private route: ActivatedRoute,
               private modalService: NgbModal) {
@@ -41,6 +42,9 @@ export class PatientComponent implements OnInit, OnDestroy {
 
       (await this.doseService.getCollectionUpdates(this.patient.id))
         .subscribe(mut => this.doses = applyUpdateToCollection(this.doses, mut));
+
+      (await this.doseSummaryService.getDoseSummariesUpdates(this.patient.id))
+        .subscribe(newSummaries => this.doseSummaries = newSummaries);
     });
   }
 

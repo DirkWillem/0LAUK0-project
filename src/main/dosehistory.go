@@ -46,6 +46,7 @@ func init() {
 }
 
 func CreateDoseHistoryEntry(userID int, newDoseHistoryEntry NewDoseHistoryEntry) (DoseHistoryEntryDetails, error) {
+	// Insert the new dose history in the database
 	result, err := db.Exec(`INSERT INTO DoseHistory (DoseID, DispensedDay, DispensedTime)
 	VALUES (?, ?, ?)`, newDoseHistoryEntry.DoseID, newDoseHistoryEntry.DispensedDay, newDoseHistoryEntry.DispensedTime)
 
@@ -53,6 +54,15 @@ func CreateDoseHistoryEntry(userID int, newDoseHistoryEntry NewDoseHistoryEntry)
 		return DoseHistoryEntryDetails{}, utils.InternalServerError(err)
 	}
 
+	// Notify the dispatcher that the dose summaries have been updated
+	summaries, err := ListDoseSummaries(userID)
+	if err != nil {
+		return DoseHistoryEntryDetails{}, err
+	}
+
+	doseSummariesSubject.DoseSummariesUpdated(userID, summaries)
+
+	// Read the updated dose history entry and return
 	doseHistoryEntryID, err := result.LastInsertId()
 
 	if err != nil {
