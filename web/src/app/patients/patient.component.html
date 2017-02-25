@@ -72,7 +72,7 @@
 </div>
 
 <template #addDoseModal let-cAdd="close">
-  <add-dose [closeFn]="cAdd" [patientId]="patient.id" (onCreate)="doses.push($event)"></add-dose>
+  <add-dose [closeFn]="cAdd" [patientId]="patient.id" (onCreate)="doseCreated($event)"></add-dose>
 </template>
 
 <template #updateDoseModal let-cUpdate="close">

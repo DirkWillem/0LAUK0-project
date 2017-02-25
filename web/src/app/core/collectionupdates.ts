@@ -38,7 +38,12 @@ export type CollectionMutation<M extends Model> = CollectionAddition<M> | Collec
 export function applyUpdateToCollection<M extends Model>(collection: M[], mutation: CollectionMutation<M>): M[] {
   switch(mutation.action) {
     case "added":
-      return [...collection, mutation.addedEntity];
+      if(!collection.some(entity => entity.id == mutation.addedEntity.id)) {
+        return [...collection, mutation.addedEntity];
+      } else {
+        return collection;
+      }
+
     case "updated":
       return collection.map(entity => entity.id == mutation.updatedEntity.id ? mutation.updatedEntity : entity);
     case "deleted":

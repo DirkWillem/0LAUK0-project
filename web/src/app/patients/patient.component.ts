@@ -64,6 +64,16 @@ export class PatientComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Adds a created dose to the list of doses if it wasn't already added by the dispatcher
+   * @param dose - The created dose
+   */
+  doseCreated(dose: Dose) {
+    if(!this.doses.some(d => d.id == dose.id)) {
+      this.doses.push(dose);
+    }
+  }
+
+  /**
    * Event handler for opening the update dose modal
    * @param dose - The dose to update
    * @param contents - The contents of the update dose modal
