@@ -87,6 +87,9 @@ func CreateDispatchHandler(dispatcher *Dispatcher) func(w http.ResponseWriter, r
 			}
 		}
 
+		close(incomingMessages)
+		close(closed)
+
 		dispatcher.RemoveClient(clnt)
 	}
 }

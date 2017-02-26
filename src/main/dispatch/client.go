@@ -105,7 +105,7 @@ func (c *client) Unsubscribe(subscriptionID int) {
 	}
 
 	if index >= 0 {
-		c.Subscriptions[subscriptionID] = c.Subscriptions[len(c.Subscriptions)-1]
+		c.Subscriptions[index] = c.Subscriptions[len(c.Subscriptions)-1]
 		c.Subscriptions = c.Subscriptions[:len(c.Subscriptions)-1]
 	}
 }

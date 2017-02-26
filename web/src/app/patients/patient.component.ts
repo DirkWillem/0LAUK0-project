@@ -7,6 +7,7 @@ import { Dose, DoseService } from "../core/services/dose.service";
 import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { DoseSummarySummary, DoseSummaryService } from "../core/services/dosesummary.service";
 import { applyUpdateToCollection } from "../core/collectionupdates";
+import { DispatcherService } from "../core/services/dispatcher.service";
 
 /**
  * Component for a single patient
@@ -21,13 +22,18 @@ export class PatientComponent implements OnInit, OnDestroy {
   doseSummaries: DoseSummarySummary[];
 
   routeDataSubscription: Subscription;
+
+  dosesUpdatesSubscriptionId: number;
   dosesUpdatesSubscription: Subscription;
+
+  doseSummariesUpdatesSubscriptionId: number;
   doseSummariesUpdatesSubscription: Subscription;
 
   pendingDose: Dose = null;
 
   constructor(private userService: UserService,
               private doseSummaryService: DoseSummaryService,
+              private dispatcherService: DispatcherService,
               private doseService: DoseService,
               private route: ActivatedRoute,
               private modalService: NgbModal) {
@@ -43,21 +49,28 @@ export class PatientComponent implements OnInit, OnDestroy {
       this.doses = data.doses;
       this.doseSummaries = data.doseSummaries;
 
-      this.dosesUpdatesSubscription = (await this.doseService.getCollectionUpdates(this.patient.id))
+      const dosesSubscription = await this.doseService.getCollectionUpdates(this.patient.id);
+      this.dosesUpdatesSubscription = dosesSubscription.updates
         .subscribe(mut => this.doses = applyUpdateToCollection(this.doses, mut));
+      this.dosesUpdatesSubscriptionId = dosesSubscription.subscriptionId;
 
-      this.doseSummariesUpdatesSubscription = (await this.doseSummaryService.getDoseSummariesUpdates(this.patient.id))
+      const doseSummariesSubscription = await this.doseSummaryService.getDoseSummariesUpdates(this.patient.id);
+      this.doseSummariesUpdatesSubscription = doseSummariesSubscription.updates
         .subscribe(newSummaries => this.doseSummaries = newSummaries);
+      this.doseSummariesUpdatesSubscriptionId = doseSummariesSubscription.subscriptionId;
     });
   }
 
   /**
    * Destruction Angular lifecycle hook
    */
-  ngOnDestroy() {
+  async ngOnDestroy() {
     this.routeDataSubscription && this.routeDataSubscription.unsubscribe();
     this.dosesUpdatesSubscription && this.dosesUpdatesSubscription.unsubscribe();
     this.doseSummariesUpdatesSubscription && this.doseSummariesUpdatesSubscription.unsubscribe();
+
+    await this.dispatcherService.unsubscribeTo(this.dosesUpdatesSubscriptionId);
+    await this.dispatcherService.unsubscribeTo(this.doseSummariesUpdatesSubscriptionId);
   }
 
   /**

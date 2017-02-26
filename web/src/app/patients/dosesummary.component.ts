@@ -16,6 +16,7 @@ export class DoseSummaryComponent implements OnInit, OnDestroy {
   opened: boolean = false;
 
   statuses: DoseStatus[] = null;
+  statusesUpdatesSubscriptionId: number;
   statusesUpdatesSubscription: Subscription;
 
   constructor(private doseSummaryService: DoseSummaryService) {
@@ -26,8 +27,10 @@ export class DoseSummaryComponent implements OnInit, OnDestroy {
    * Initialization Angular lifecycle hook
    */
   async ngOnInit() {
-    this.statusesUpdatesSubscription = (await this.doseSummaryService.getDoseStatusesUpdates(this.userId, this.summary.date))
+    const statusesSubscription = await this.doseSummaryService.getDoseStatusesUpdates(this.userId, this.summary.date);
+    this.statusesUpdatesSubscription = statusesSubscription.updates
       .subscribe(statuses => this.statuses = statuses);
+    this.statusesUpdatesSubscriptionId = statusesSubscription.subscriptionId;
   }
 
   /**

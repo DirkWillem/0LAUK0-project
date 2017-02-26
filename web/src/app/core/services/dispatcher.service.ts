@@ -29,9 +29,24 @@ interface SubscribeRequestPayload {
 }
 
 /**
+ * Contains the payload for an unsubscription request
+ */
+interface UnsubscribeRequestPayload {
+  subscriptionId: number;
+}
+
+/**
  * Contains the payload returned by a subscribe response
  */
 interface SubscribeMessagePayload {
+  subscriptionId: number;
+}
+
+/**
+ * Contains information on a dispatcher subscription
+ */
+export interface DispatcherSubscription<T> {
+  updates: Observable<T>;
   subscriptionId: number;
 }
 
@@ -43,10 +58,10 @@ export class DispatcherService {
   socket: WebSocket;
 
   private messages: Subject<DispatcherMessage<any>> = new Subject<DispatcherMessage<any>>();
-
   private requestIdCounter: number = 1;
-
   private connection: Promise<void>;
+
+  private subscriptions: {[subscriptionId: string]: DispatcherSubscription<any>} = {};
 
   constructor() {
     this.connection = new Promise<void>(resolve => {
@@ -66,13 +81,22 @@ export class DispatcherService {
    * Returns a subscription to a given subject with the given parameters
    * @param subject - The subject to subscribe to
    * @param subscriptionParams - The parameters to subscribe with
-   * @returns {Promise<Observable<DispatcherMessage<T>>>} Promise resolving to the subscription observable
+   * @returns {Promise<DispatcherSubscription<T>>} Promise resolving to the subscription observable
    */
-  async subscribeTo<T>(subject: string, subscriptionParams: any): Promise<Observable<DispatcherMessage<T>>> {
+  async subscribeTo<T>(subject: string, subscriptionParams: any): Promise<DispatcherSubscription<DispatcherMessage<T>>> {
     const response = await this.sendRequest<SubscribeRequestPayload, SubscribeMessagePayload>("subscribe", {subject, subscriptionParams});
 
-    return this.messages
-      .filter(msg => msg.subscriptionId == response.payload.subscriptionId);
+    console.log(response);
+
+    return {
+      updates: this.messages
+        .filter(msg => msg.subscriptionId == response.payload.subscriptionId),
+      subscriptionId: response.payload.subscriptionId
+    };
+  }
+
+  async unsubscribeTo(subscriptionId: number) {
+    await this.sendRequest<UnsubscribeRequestPayload, {}>("unsubscribe", {subscriptionId})
   }
 
   /**

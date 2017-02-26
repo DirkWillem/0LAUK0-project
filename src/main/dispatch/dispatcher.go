@@ -85,6 +85,8 @@ func (d *Dispatcher) RemoveClient(clnt *client) {
 		}
 	}
 
+	close(d.clients[index].OutgoingMessages)
+
 	d.clients[index] = d.clients[len(d.clients)-1]
 	d.clients = d.clients[:len(d.clients)-1]
 }

@@ -3,7 +3,7 @@ import { Observable } from 'rxjs';
 
 import { AuthHttp } from './authhttp.service';
 import { Model, Field, ModelJson } from "../model";
-import { DispatcherService } from "./dispatcher.service";
+import { DispatcherService, DispatcherSubscription } from "./dispatcher.service";
 
 /**
  * Contains summary information on a dose summary
@@ -61,9 +61,14 @@ export class DoseSummaryService {
    * @param userId - The user ID of the list to get the updates for
    * @returns {Promise<Observable<DoseSummarySummary[]>>} Promise resolving to the observable of the updates
    */
-  async getDoseSummariesUpdates(userId: number): Promise<Observable<DoseSummarySummary[]>> {
-    return (await this.dispatcherService.subscribeTo<{updatedSummaries: DoseSummarySummary[]}>("dosesummaries", {userId}))
-      .map(val => val.payload.updatedSummaries);
+  async getDoseSummariesUpdates(userId: number): Promise<DispatcherSubscription<DoseSummarySummary[]>> {
+    const sub = await this.dispatcherService.subscribeTo<{updatedSummaries: DoseSummarySummary[]}>("dosesummaries", {userId});
+
+    return {
+      updates: sub.updates
+        .map(val => val.payload.updatedSummaries),
+      subscriptionId: sub.subscriptionId
+    };
   }
 
   /**
@@ -72,8 +77,13 @@ export class DoseSummaryService {
    * @param date - The date to find the dose status updates for
    * @returns {Promise<void>} Promise resolving to the observable of the updates
    */
-  async getDoseStatusesUpdates(userId: number, date: string): Promise<Observable<DoseStatus[]>> {
-    return (await this.dispatcherService.subscribeTo<{updatedStatuses: DoseStatus[]}>("dosestatuses", {userId, date}))
-      .map(val => val.payload.updatedStatuses);
+  async getDoseStatusesUpdates(userId: number, date: string): Promise<DispatcherSubscription<DoseStatus[]>> {
+    const sub = await this.dispatcherService.subscribeTo<{updatedStatuses: DoseStatus[]}>("dosestatuses", {userId, date});
+
+    return {
+      updates: sub.updates
+        .map(val => val.payload.updatedStatuses),
+      subscriptionId: sub.subscriptionId
+    };
   }
 }

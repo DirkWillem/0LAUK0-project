@@ -2,7 +2,7 @@ import { Observable } from 'rxjs';
 
 import { Model, SubModelClass, PartialModel, ModelJson } from "../model";
 import { AuthHttp } from "./authhttp.service";
-import { DispatcherService } from "./dispatcher.service";
+import { DispatcherService, DispatcherSubscription } from "./dispatcher.service";
 import { CollectionMutation, CollectionAddition, CollectionUpdate, CollectionRemoval } from "../collectionupdates";
 
 /**
@@ -78,12 +78,15 @@ export class NestedAPIInterface<M extends Model> {
    * Returns an observable which contains the collection updates returned by the dispatcher
    * @param superId - ID of the super entity to subscribe to
    */
-  async getCollectionUpdates(superId: number): Promise<Observable<CollectionMutation<M>>> {
-    return (await this.dispatcherService
+  async getCollectionUpdates(superId: number): Promise<DispatcherSubscription<CollectionMutation<M>>> {
+    const sub = (await this.dispatcherService
       .subscribeTo(this.collectionSubject, {
         [this.collectionSubjectSuperIdProperty]: superId
-      }))
-      .map(msg => {
+      }));
+
+    return {
+      updates: sub.updates
+        .map(msg => {
         console.log(msg);
         switch(msg.action) {
           case "added":
@@ -102,6 +105,8 @@ export class NestedAPIInterface<M extends Model> {
               id: (msg.payload as {id: number}).id
             };
         }
-      });
+      }),
+      subscriptionId: sub.subscriptionId
+    }
   }
 }
