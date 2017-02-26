@@ -1,5 +1,6 @@
 import { Injectable } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
+import * as equal from 'deep-equal';
 
 /**
  * Contains the data in a message returned by the dispatcher
@@ -51,6 +52,16 @@ export interface DispatcherSubscription<T> {
 }
 
 /**
+ * Internal reference of a subject subscription in the dispatcher service
+ */
+interface SubjectSubscription {
+  subscription: DispatcherSubscription<any>;
+  subject: string;
+  subscriptionParams: any;
+  subscriberCount: number;
+}
+
+/**
  * Service for interfacing with the dispatcher
  */
 @Injectable()
@@ -61,7 +72,7 @@ export class DispatcherService {
   private requestIdCounter: number = 1;
   private connection: Promise<void>;
 
-  private subscriptions: {[subscriptionId: string]: DispatcherSubscription<any>} = {};
+  private subscriptions: SubjectSubscription[] = [];
 
   constructor() {
     this.connection = new Promise<void>(resolve => {
@@ -84,19 +95,47 @@ export class DispatcherService {
    * @returns {Promise<DispatcherSubscription<T>>} Promise resolving to the subscription observable
    */
   async subscribeTo<T>(subject: string, subscriptionParams: any): Promise<DispatcherSubscription<DispatcherMessage<T>>> {
+    // Check if there is an existing subscription already
+    const existing = this.subscriptions.find(sub => sub.subject == subject && equal(sub.subscriptionParams, subscriptionParams));
+
+    if(existing) {
+      this.subscriptions.forEach(sub => {
+        if(sub.subscription.subscriptionId == existing.subscription.subscriptionId) {
+          sub.subscriberCount++;
+        }
+      });
+
+      return existing.subscription;
+    }
+
+    // Otherwise, create a new subscription
     const response = await this.sendRequest<SubscribeRequestPayload, SubscribeMessagePayload>("subscribe", {subject, subscriptionParams});
 
     console.log(response);
 
-    return {
+    const subscription = {
       updates: this.messages
         .filter(msg => msg.subscriptionId == response.payload.subscriptionId),
       subscriptionId: response.payload.subscriptionId
     };
+
+    this.subscriptions.push({subscription, subject, subscriptionParams, subscriberCount: 1});
+    return subscription;
   }
 
   async unsubscribeTo(subscriptionId: number) {
-    await this.sendRequest<UnsubscribeRequestPayload, {}>("unsubscribe", {subscriptionId})
+    await Promise.all(this.subscriptions.map(async (sub) => {
+      if(sub.subscription.subscriptionId == subscriptionId) {
+        sub.subscriberCount--;
+        if(sub.subscriberCount <= 0) {
+          await this.sendRequest<UnsubscribeRequestPayload, {}>("unsubscribe", {subscriptionId})
+        }
+      }
+
+      return sub;
+    }));
+
+    this.subscriptions = this.subscriptions.filter(sub => sub.subscriberCount > 0);
   }
 
   /**
