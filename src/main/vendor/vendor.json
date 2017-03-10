@@ -1,9 +1,11 @@
 {
 	"comment": "",
-	"ignore": "test",
 	"heroku.goVersion": "1.7",
-	"heroku.install": ["./..."],
+	"heroku.install": [
+		"./..."
+	],
 	"heroky.sync": true,
+	"ignore": "test",
 	"package": [
 		{
 			"checksumSHA1": "2Fy1Y6Z3lRRX1891WF/+HT4XS2I=",
@@ -142,7 +144,22 @@
 			"path": "gopkg.in/warnings.v0",
 			"revision": "8a331561fe74dadba6edfc59f3be66c22c3b065d",
 			"revisionTime": "2016-08-15T18:11:09Z"
+		},
+		{
+			"checksumSHA1": "3FFOWjHD/lf592NLUYZINO8WuDY=",
+			"path": "main",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "E3SDmSltde9JGY+a7G9TSnYx1Lo=",
+			"path": "main/utils",
+			"revision": ""
+		},
+		{
+			"checksumSHA1": "v1D7S1HegQ95JsPhZ7LhpjIwvK8=",
+			"path": "main/dispatch",
+			"revision": ""
 		}
 	],
-	"rootPath": "github.com/DirkWillem/0LAUK0 Project/src/main"
+	"rootPath": "main"
 }
