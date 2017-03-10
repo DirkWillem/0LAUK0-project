@@ -29,8 +29,9 @@ type (
 
 		// Web host settings
 		Host struct {
-			Host string
-			Port string
+			Host       string
+			Port       string
+			UseEnvPort bool
 		}
 	}
 )
@@ -63,5 +64,9 @@ func init() {
 	db, err = sql.Open("mysql", connectionString)
 	if err != nil {
 		utils.LogErrorMessageFatal(fmt.Sprintf("Error opening database connection: %s", err.Error()))
+	}
+
+	if config.Host.UseEnvPort {
+		config.Host.Port = os.Getenv("PORT")
 	}
 }
