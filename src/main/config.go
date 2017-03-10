@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/go-sql-driver/mysql"
 	"main/utils"
+	"os"
 )
 
 type (
@@ -42,7 +43,13 @@ var (
 func init() {
 	// Load the app config
 	log.Println("Loading app config")
-	err := gcfg.ReadFileInto(&config, "./config/app.cfg")
+
+	configFile := "app.cfg"
+	if envConfigFile := os.Getenv("CONFIG_FILE"); len(envConfigFile) > 0 {
+		configFile = envConfigFile
+	}
+
+	err := gcfg.ReadFileInto(&config, fmt.Sprintf("./config/%s", configFile))
 
 	if err != nil {
 		utils.LogErrorMessageFatal(fmt.Sprintf("Error reading app config: %s", err.Error()))

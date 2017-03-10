@@ -1,10 +1,10 @@
 {
 	"comment": "",
-	"heroku.goVersion": "1.7",
-	"heroku.install": [
-		"./..."
-	],
-	"heroky.sync": true,
+	"heroku": {
+		"goVersion": "1.8",
+		"install": "./...",
+		"sync": true
+	},
 	"ignore": "test",
 	"package": [
 		{
@@ -151,13 +151,13 @@
 			"revision": ""
 		},
 		{
-			"checksumSHA1": "E3SDmSltde9JGY+a7G9TSnYx1Lo=",
-			"path": "main/utils",
+			"checksumSHA1": "v1D7S1HegQ95JsPhZ7LhpjIwvK8=",
+			"path": "main/dispatch",
 			"revision": ""
 		},
 		{
-			"checksumSHA1": "v1D7S1HegQ95JsPhZ7LhpjIwvK8=",
-			"path": "main/dispatch",
+			"checksumSHA1": "E3SDmSltde9JGY+a7G9TSnYx1Lo=",
+			"path": "main/utils",
 			"revision": ""
 		}
 	],
