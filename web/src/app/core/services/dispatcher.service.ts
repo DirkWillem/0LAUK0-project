@@ -76,7 +76,7 @@ export class DispatcherService {
 
   constructor() {
     this.connection = new Promise<void>(resolve => {
-      this.socket = new WebSocket(`ws://${window.location.host == 'localhost' ? 'localhost:5000' : window.location.host}/api/dispatcher`);
+      this.socket = new WebSocket(`${window.location.protocol == 'https:' ? 'wss' : 'ws'}://${window.location.host == 'localhost' ? 'localhost:5000' : window.location.host}/api/dispatcher`);
       this.socket.addEventListener("open", (e) => {
         resolve();
       });
