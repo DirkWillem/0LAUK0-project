@@ -8,6 +8,7 @@ import (
 	"main/utils"
 	"main/dispatch"
 	"os"
+	"gopkg.in/hlandau/passlib.v1"
 )
 
 
@@ -33,10 +34,10 @@ func main() {
 	r.HandleFunc("/api/medications/{medicationId}", CheckJWT(CheckRole(DoctorOrPharmacist, HandleDeleteMedication))).Methods("DELETE")
 
 	r.HandleFunc("/api/users", CheckJWT(CheckRole(Doctor, HandleCreateUser))).Methods("POST")
-	r.HandleFunc("/api/users", CheckJWT(CheckRole(Admin, HandleListUsers))).Methods("GET")
-	r.HandleFunc("/api/users/{userId}", CheckJWT(CheckRole(Admin, HandleReadUser))).Methods("GET")
+	r.HandleFunc("/api/users", CheckJWT(CheckRole(Doctor, HandleListUsers))).Methods("GET")
+	r.HandleFunc("/api/users/{userId}", CheckJWT(CheckRole(Doctor, HandleReadUser))).Methods("GET")
 	r.HandleFunc("/api/users/{userId}", CheckJWT(CheckRole(Doctor, HandleUpdateUser))).Methods("PUT")
-	r.HandleFunc("/api/users/{userId}", CheckJWT(CheckRole(Admin, HandleDeleteUser))).Methods("DELETE")
+	r.HandleFunc("/api/users/{userId}", CheckJWT(CheckRole(Doctor, HandleDeleteUser))).Methods("DELETE")
 
 	r.HandleFunc("/api/users/{userId}/doses", CheckJWT(CheckRole(Doctor, HandleCreateDose))).Methods("POST")
 	r.HandleFunc("/api/users/{userId}/doses", CheckJWT(HandleListDoses)).Methods("GET")
