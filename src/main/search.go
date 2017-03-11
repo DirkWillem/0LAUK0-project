@@ -43,7 +43,7 @@ func (sm SearchMapping) CreateQuery(query string, search map[string]string, para
 			for _, val := range strings.Split(searchValue, "|") {
 				switch(fieldMapping.SearchType) {
 				case SearchTypeEqual:
-					clauses = append(clauses, fmt.Sprintf("%s = ?", fieldMapping.DBField))
+					clauses = append(clauses, fmt.Sprintf("%s = $%d", fieldMapping.DBField, len(params)+1))
 				}
 				params = append(params, val)
 			}

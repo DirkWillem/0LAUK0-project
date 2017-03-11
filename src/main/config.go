@@ -6,7 +6,7 @@ import (
 	"gopkg.in/gcfg.v1"
 	"log"
 
-	_ "github.com/go-sql-driver/mysql"
+	_ "github.com/lib/pq"
 	"main/utils"
 	"os"
 )
@@ -20,6 +20,7 @@ type (
 			User     string
 			Password string
 			DBName   string
+			UseEnvDBString bool
 		}
 
 		// JSON Web Token settings
@@ -59,9 +60,13 @@ func init() {
 	// Open database connection
 	log.Println("Opening database connection")
 
-	connectionString := fmt.Sprintf("%s:%s@tcp(%s:3306)/%s", config.Database.User, config.Database.Password, config.Database.Host, config.Database.DBName)
+	connectionString := fmt.Sprintf("postgres://%s:%s@%s/%s?sslmode=disable", config.Database.User, config.Database.Password, config.Database.Host, config.Database.DBName)
 
-	db, err = sql.Open("mysql", connectionString)
+	if config.Database.UseEnvDBString {
+		connectionString = os.Getenv("DATABASE_URL")
+	}
+
+	db, err = sql.Open("postgres", connectionString)
 	if err != nil {
 		utils.LogErrorMessageFatal(fmt.Sprintf("Error opening database connection: %s", err.Error()))
 	}

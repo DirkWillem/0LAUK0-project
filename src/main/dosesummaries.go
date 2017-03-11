@@ -25,25 +25,25 @@ type (
 func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 	// Read dose summaries from the database
 	rows, err := db.Query(`SELECT H.DispensedDay AS HistoryDay, COUNT(H.DoseID) AS DispensedDayCount,
-		(SELECT COUNT(*) FROM Doses D
-			LEFT JOIN DoseHistory DH ON DH.DoseID = D.ID AND DH.DispensedDay = CURRENT_DATE()
-			WHERE ISNULL(DH.ID) AND
-				H.DispensedDay = CURRENT_DATE() AND
-				((D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME() < D.DispenseBefore) OR
-					D.DispenseAfter > D.DispenseBefore)) AS PendingDayCount,
-		(SELECT COUNT(*) FROM Doses
-			WHERE UserID = ? AND DATE(CreatedOn) <= H.DispensedDay) AS TotalDayCount
-	FROM (SELECT
-		CASE
-			WHEN (D.DispenseAfter > D.DispenseBefore AND DH.DispensedTime < D.DispenseAfter)
-				THEN DATE_ADD(DH.DispensedDay, INTERVAL -1 DAY)
-			ELSE DH.DispensedDay
-		END AS DispensedDay,
-		D.ID AS DoseID
-	FROM Doses D
-		RIGHT JOIN DoseHistory DH ON DH.DoseID = D.ID
-	WHERE D.UserID = ?) H GROUP BY H.DispensedDay
-	ORDER BY H.DispensedDay DESC`, userID, userID)
+  (SELECT COUNT(*) FROM Doses D
+    LEFT JOIN DoseHistory DH ON DH.DoseID = D.ID AND DH.DispensedDay = CURRENT_DATE
+  WHERE DH.ID IS NULL AND
+              H.DispensedDay = CURRENT_DATE AND
+              ((D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME < D.DispenseBefore) OR
+               D.DispenseAfter > D.DispenseBefore)) AS PendingDayCount,
+  (SELECT COUNT(*) FROM Doses
+    WHERE UserID = $1 AND DATE(CreatedOn) <= H.DispensedDay) AS TotalDayCount
+  FROM (SELECT
+    CASE
+      WHEN (D.DispenseAfter > D.DispenseBefore AND DH.DispensedTime < D.DispenseAfter)
+      THEN DH.DispensedDay - INTERVAL '1 day'
+      ELSE DH.DispensedDay
+    END AS DispensedDay,
+    D.ID AS DoseID
+  FROM Doses D
+      RIGHT JOIN DoseHistory DH ON DH.DoseID = D.ID
+    WHERE D.UserID = $1) H GROUP BY H.DispensedDay
+    ORDER BY H.DispensedDay DESC`, userID)
 
 	if err != nil {
 		return []DoseSummarySummary{}, utils.InternalServerError(err)
@@ -69,21 +69,21 @@ func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
 	// Read dose statuses from the database
 	rows, err := db.Query(`SELECT D.ID AS DoseID, D.Title AS DoseTitle, IFNULL(DH.DispensedTime, '') AS DispensedTime,
-  (NOT ISNULL(DH.ID)) AS Dispensed,
-  (ISNULL(DH.ID) AND (
-    (D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME() < D.DispenseBefore) OR D.DispenseAfter > D.DispenseBefore
-  ) AND ? = CURRENT_DATE()) AS Pending,
-  (ISNULL(DH.ID) AND (
-    (D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME() BETWEEN D.DispenseBefore AND D.DispenseAfter) OR
-    (D.DispenseAfter > D.DispenseBefore AND CURRENT_TIME() >= D.DispenseAfter)
-  ) AND ? = CURRENT_DATE()) AS BeingDispensed
+  (DH.ID IS NOT NULL) AS Dispensed,
+  (DH.ID IS NULL AND (
+    (D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME < D.DispenseBefore) OR D.DispenseAfter > D.DispenseBefore
+  ) AND $1 = CURRENT_DATE) AS Pending,
+  (DH.ID IS NULL AND (
+    (D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME BETWEEN D.DispenseBefore AND D.DispenseAfter) OR
+    (D.DispenseAfter > D.DispenseBefore AND CURRENT_TIME >= D.DispenseAfter)
+  ) AND $1 = CURRENT_DATE) AS BeingDispensed
   FROM Doses D
   LEFT JOIN DoseHistory DH
-    ON DH.DoseID = D.ID AND DH.DispensedDay = ? AND
-       (D.DispenseAfter < D.DispenseBefore OR DH.DispensedTime >= D.DispenseAfter)
+    ON DH.DoseID = D.ID AND DH.DispensedDay = $1 AND
+      (D.DispenseAfter < D.DispenseBefore OR DH.DispensedTime >= D.DispenseAfter)
   WHERE
-    DATE(D.CreatedOn) <= ? AND D.UserID = ?
-	ORDER BY D.DispenseAfter`, date, date, date, date, userID)
+    D.createdon::date <= $1 AND D.UserID = $2
+  ORDER BY D.DispenseAfter`, date, userID)
 
 	if err != nil {
 		return []DoseStatus{}, utils.InternalServerError(err)

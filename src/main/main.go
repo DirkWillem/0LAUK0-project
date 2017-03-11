@@ -7,7 +7,17 @@ import (
 	"net/http"
 	"main/utils"
 	"main/dispatch"
+	"os"
 )
+
+
+func fileHandler(w http.ResponseWriter, r *http.Request) {
+	if _, err := os.Stat("./static" + r.URL.Path); err != nil {
+		http.ServeFile(w, r, "./static/index.html")
+		return
+	}
+	http.ServeFile(w, r, "./static"+r.URL.Path)
+}
 
 func main() {
 	// Initialize router
@@ -42,6 +52,8 @@ func main() {
 	r.HandleFunc("/api/users/{userId}/dosesummaries/{date}", CheckJWT(CheckRole(Doctor, HandleReadDoseSummary))).Methods("GET")
 
 	r.HandleFunc("/api/dispatcher", dispatch.CreateDispatchHandler(dispatcher)).Methods("GET")
+
+	r.PathPrefix("/").HandlerFunc(fileHandler)
 
 	// Start the dispatcher
 	go dispatcher.Start()

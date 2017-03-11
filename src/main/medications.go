@@ -47,7 +47,7 @@ func (md MedicationDetails) ToSummary() MedicationSummary {
 func CreateMedication(newMedication NewMedication) (MedicationDetails, error) {
 	// Insert the medication into the database
 	result, err := db.Exec(`INSERT INTO Medications (Title, Description)
-  VALUES (?, ?)`, newMedication.Title, newMedication.Description)
+  VALUES ($1, $2)`, newMedication.Title, newMedication.Description)
 
 	if err != nil {
 		return MedicationDetails{}, utils.InternalServerError(err)
@@ -104,7 +104,7 @@ func ReadMedication(id int) (MedicationDetails, error) {
 	var medication MedicationDetails
 
 	err := db.QueryRow(`SELECT ID, Title, Description FROM Medications
-  WHERE ID = ?`, id).Scan(&medication.ID, &medication.Title, &medication.Description)
+  WHERE ID = $1`, id).Scan(&medication.ID, &medication.Title, &medication.Description)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -121,9 +121,9 @@ func UpdateMedication(id int, updatedMedication UpdatedMedication) (MedicationDe
 	// Update the medication in the database
 	_, err := db.Exec(`UPDATE Medications
 	SET
-		Title = ?,
-		Description = ?
-	WHERE ID = ?`, updatedMedication.Title, updatedMedication.Description, id)
+		Title = $1,
+		Description = $2
+	WHERE ID = $3`, updatedMedication.Title, updatedMedication.Description, id)
 
 	if err != nil {
 		return MedicationDetails{}, utils.InternalServerError(err)
@@ -144,7 +144,7 @@ func UpdateMedication(id int, updatedMedication UpdatedMedication) (MedicationDe
 // DeleteMedication deletes a medication with a given ID
 func DeleteMedication(id int) error {
 	// Delete the entity in the database
-	_, err := db.Exec(`DELETE FROM Medications WHERE ID = ?`, id)
+	_, err := db.Exec(`DELETE FROM Medications WHERE ID = $1`, id)
 
 	if err != nil {
 		return utils.InternalServerError(err)

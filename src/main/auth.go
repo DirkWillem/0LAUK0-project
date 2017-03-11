@@ -34,8 +34,8 @@ type (
 // UpdatePasswordHash updates the password hash if necessary
 func UpdatePasswordHash(username, newPasswordHash string) error {
 	_, err := db.Exec(`UPDATE Users
-    SET PasswordHash = ?
-    WHERE Username = ?`, username)
+    SET PasswordHash = $1
+    WHERE Username = $2`, newPasswordHash, username)
 
 	if err != nil {
 		utils.LogErrorMessage(err.Error())
@@ -103,7 +103,7 @@ func Authenticate(credentials Credentials) (SessionToken, error) {
 
 	err := db.QueryRow(`SELECT ID, Username, FullName, PasswordHash, Role, Email
     FROM Users
-    WHERE Username = ?`, credentials.Username).Scan(&session.UserID, &session.Username, &session.FullName, &passwordHash, &session.Role, &session.Email)
+    WHERE Username = $1`, credentials.Username).Scan(&session.UserID, &session.Username, &session.FullName, &passwordHash, &session.Role, &session.Email)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

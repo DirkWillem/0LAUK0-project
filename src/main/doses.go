@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"main/utils"
+	"time"
 )
 
 type (
@@ -80,7 +81,7 @@ func CreateDose(userID int, newDose NewDose) (DoseDetails, error) {
 
 	// Insert the dose into the Doses table
 	result, err := tx.Exec(`INSERT INTO Doses (Title, Description, UserID, DispenseAfter, DispenseBefore)
-  VALUES (?, ?, ?, ?, ?)`, newDose.Title, newDose.Description, userID, newDose.DispenseAfter, newDose.DispenseBefore)
+  VALUES ($1, $2, $3, $4, $5)`, newDose.Title, newDose.Description, userID, newDose.DispenseAfter, newDose.DispenseBefore)
 
 	if err != nil {
 		utils.RollbackOrLog(tx)
@@ -97,7 +98,7 @@ func CreateDose(userID int, newDose NewDose) (DoseDetails, error) {
 	// Insert the dose medications
 	for _, medication := range newDose.Medications {
 		_, err = tx.Exec(`INSERT INTO DoseMedications (DoseID, MedicationID, Amount)
-    VALUES (?, ?, ?)`, doseID, medication.MedicationID, medication.Amount)
+    VALUES ($1, $2, $3)`, doseID, medication.MedicationID, medication.Amount)
 
 		if err != nil {
 			utils.RollbackOrLog(tx)
@@ -128,9 +129,11 @@ func CreateDose(userID int, newDose NewDose) (DoseDetails, error) {
 // ListDoses returns a list of all doses for a user
 func ListDoses(userID int) ([]DoseSummary, error) {
 	// Read doses from the database
+	var dispenseAfter, dispenseBefore time.Time
+
 	rows, err := db.Query(`SELECT ID, Title, DispenseAfter, DispenseBefore, Description
   FROM Doses
-  WHERE UserID = ?
+  WHERE UserID = $1
   ORDER BY DispenseAfter`, userID)
 
 	if err != nil {
@@ -142,10 +145,13 @@ func ListDoses(userID int) ([]DoseSummary, error) {
 	var dose DoseSummary
 
 	for rows.Next() {
-		err := rows.Scan(&dose.ID, &dose.Title, &dose.DispenseAfter, &dose.DispenseBefore, &dose.Description)
+		err := rows.Scan(&dose.ID, &dose.Title, &dispenseAfter, &dispenseBefore, &dose.Description)
 		if err != nil {
 			return doses, utils.InternalServerError(err)
 		}
+
+		dose.DispenseAfter = dispenseAfter.Format(TimeFormat)
+		dose.DispenseBefore = dispenseBefore.Format(TimeFormat)
 
 		doses = append(doses, dose)
 	}
@@ -158,9 +164,11 @@ func ReadDose(userID, doseID int) (DoseDetails, error) {
 	// Read dose from the database
 	var dose DoseDetails
 
+	var dispenseAfter, dispenseBefore time.Time
+
 	err := db.QueryRow(`SELECT ID, Title, DispenseAfter, DispenseBefore, Description
   FROM Doses
-  WHERE ID = ? AND UserID = ?`, doseID, userID).Scan(&dose.ID, &dose.Title, &dose.DispenseAfter, &dose.DispenseBefore, &dose.Description)
+  WHERE ID = $1 AND UserID = $2`, doseID, userID).Scan(&dose.ID, &dose.Title, &dispenseAfter, &dispenseBefore, &dose.Description)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -169,10 +177,13 @@ func ReadDose(userID, doseID int) (DoseDetails, error) {
 		return dose, utils.InternalServerError(err)
 	}
 
+	dose.DispenseAfter = dispenseAfter.Format(TimeFormat)
+	dose.DispenseBefore = dispenseBefore.Format(TimeFormat)
+
 	// Read the dose medications from the database
 	rows, err := db.Query(`SELECT DM.Amount, M.ID, M.Title, M.Description FROM DoseMedications DM
   LEFT JOIN Medications M ON DM.MedicationID = M.ID
-  WHERE DoseID = ?`, doseID)
+  WHERE DoseID = $1`, doseID)
 
 	if err != nil {
 		return dose, utils.InternalServerError(err)
@@ -212,11 +223,11 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 	// Update the dose
 	_, err = tx.Exec(`UPDATE Doses
 	SET
-		Title = ?,
-		Description = ?,
-		DispenseAfter = ?,
-		DispenseBefore = ?
-	WHERE UserID = ? AND ID = ?`, updatedDose.Title, updatedDose.Description, updatedDose.DispenseAfter, updatedDose.DispenseBefore, userID, doseID)
+		Title = $1,
+		Description = $2,
+		DispenseAfter = $3,
+		DispenseBefore = $4
+	WHERE UserID = $5 AND ID = $6`, updatedDose.Title, updatedDose.Description, updatedDose.DispenseAfter, updatedDose.DispenseBefore, userID, doseID)
 
 	if err != nil {
 		utils.RollbackOrLog(tx)
@@ -240,8 +251,8 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 				if updatedDoseMedication.Amount != doseMedication.Amount {
 					_, err = tx.Exec(`UPDATE DoseMedications
 					SET
-						Amount = ?
-					WHERE DoseID = ? AND MedicationID = ?`, updatedDoseMedication.Amount, doseID, updatedDoseMedication.Medication.ID)
+						Amount = $1
+					WHERE DoseID = $2 AND MedicationID = $3`, updatedDoseMedication.Amount, doseID, updatedDoseMedication.Medication.ID)
 
 					if err != nil {
 						utils.RollbackOrLog(tx)
@@ -254,7 +265,7 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 		// If the dose medication was new, insert it in the database
 		if isNew {
 			_, err = tx.Exec(`INSERT INTO DoseMedications (DoseID, MedicationID, Amount)
-			VALUES (?, ?, ?)`, doseID, updatedDoseMedication.Medication.ID, updatedDoseMedication.Amount)
+			VALUES ($1, $2, $3)`, doseID, updatedDoseMedication.Medication.ID, updatedDoseMedication.Amount)
 
 			if err != nil {
 				utils.RollbackOrLog(tx)
@@ -276,7 +287,7 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 
 		if !processed {
 			_, err = tx.Exec(`DELETE FROM DoseMedications
-			WHERE DoseID = ? AND MedicationID = ?`, doseID, doseMedication.Medication.ID)
+			WHERE DoseID = $1 AND MedicationID = $2`, doseID, doseMedication.Medication.ID)
 
 			if err != nil {
 				utils.RollbackOrLog(tx)
@@ -308,7 +319,7 @@ func UpdateDose(userID, doseID int, updatedDose UpdatedDose) (DoseDetails, error
 // DeleteDose deletes a dose for a given user and dose ID
 func DeleteDose(userID, doseID int) error {
 	// Delete the dose in the database
-	_, err := db.Exec(`DELETE FROM Doses WHERE UserID = ? AND ID = ?`, userID, doseID)
+	_, err := db.Exec(`DELETE FROM Doses WHERE UserID = $1 AND ID = $2`, userID, doseID)
 
 	if err != nil {
 		return utils.InternalServerError(err)

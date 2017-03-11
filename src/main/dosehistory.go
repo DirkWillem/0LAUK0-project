@@ -56,7 +56,7 @@ func init() {
 func CreateDoseHistoryEntry(userID int, newDoseHistoryEntry NewDoseHistoryEntry) (DoseHistoryEntryDetails, error) {
 	// Insert the new dose history in the database
 	result, err := db.Exec(`INSERT INTO DoseHistory (DoseID, DispensedDay, DispensedTime)
-	VALUES (?, ?, ?)`, newDoseHistoryEntry.DoseID, newDoseHistoryEntry.DispensedDay, newDoseHistoryEntry.DispensedTime)
+	VALUES ($1, $2, $3)`, newDoseHistoryEntry.DoseID, newDoseHistoryEntry.DispensedDay, newDoseHistoryEntry.DispensedTime)
 
 	if err != nil {
 		return DoseHistoryEntryDetails{}, utils.InternalServerError(err)
@@ -115,7 +115,7 @@ func ListDoseHistoryEntries(userID int, search map[string]string) ([]DoseHistory
 	// Create the query using the search mapping
 	query, queryParams := doseHistorySearchMapping.CreateQuery(`SELECT DH.ID, DH.DispensedDay, DH.DispensedTime, D.ID, D.Title FROM DoseHistory DH
 	LEFT JOIN Doses D ON DH.DoseID = D.ID
-	WHERE D.UserID = ? AND %MAPPING_CONDITIONS%`, search, userID)
+	WHERE D.UserID = $1 AND %MAPPING_CONDITIONS%`, search, userID)
 
 	// Read all matching dose history entries from the database
 	rows, err := db.Query(query, queryParams...)
@@ -147,7 +147,7 @@ func ReadDoseHistoryEntry(userID, doseHistoryEntryID int) (DoseHistoryEntryDetai
 
 	err := db.QueryRow(`SELECT DH.ID, DH.DispensedDay, DH.DispensedTime, D.ID, D.Title FROM DoseHistory DH
 	LEFT JOIN Doses D ON DH.DoseID = D.ID
-	WHERE D.UserID = ? AND DH.ID = ?`, userID, doseHistoryEntryID).Scan(&dhe.ID, &dhe.DispensedDay, &dhe.DispensedTime, &dhe.Dose.ID, &dhe.Dose.Title)
+	WHERE D.UserID = $1 AND DH.ID = $2`, userID, doseHistoryEntryID).Scan(&dhe.ID, &dhe.DispensedDay, &dhe.DispensedTime, &dhe.Dose.ID, &dhe.Dose.Title)
 
 	if err != nil {
 		return dhe, utils.InternalServerError(err)

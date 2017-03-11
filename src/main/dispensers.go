@@ -19,8 +19,8 @@ type (
 // UpdateDispenserAuthToken updates the auth token of a dispenser
 func UpdateDispenserAuthToken(id int, newToken string) error {
 	_, err := db.Exec(`UPDATE Dispensers
-	SET AuthToken = ?
-	WHERE ID = ?`, newToken, id)
+	SET AuthToken = $1
+	WHERE ID = $2`, newToken, id)
 
 	if err != nil {
 		utils.LogErrorMessage(err.Error())
@@ -50,7 +50,7 @@ func AuthenticateDispenser(auth DispenserAuth) (SessionToken, error) {
 	// Read the dispenser from the database
 	var tokenHash string
 
-	err := db.QueryRow(`SELECT AuthToken FROM Dispensers WHERE ID = ?`, auth.ID).Scan(&tokenHash)
+	err := db.QueryRow(`SELECT AuthToken FROM Dispensers WHERE ID = $1`, auth.ID).Scan(&tokenHash)
 
 	if err != nil {
 		if err == sql.ErrNoRows {

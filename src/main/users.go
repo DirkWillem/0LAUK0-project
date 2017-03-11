@@ -101,7 +101,7 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 	}
 
 	result, err := tx.Exec(`INSERT INTO Users (Username, FullName, PasswordHash, Role, Email)
-	VALUES (?, ?, ?, ?, ?)`, newUser.Username, newUser.FullName, passHash, newUser.Role, newUser.Email)
+	VALUES ($1, $2, $3, $4, $5)`, newUser.Username, newUser.FullName, passHash, newUser.Role, newUser.Email)
 
 	if err != nil {
 		utils.RollbackOrLog(tx)
@@ -130,7 +130,7 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 
 	// Insert relations into the database
 	for _, insertedRelationID := range insertedRelationIDs {
-		_, err = db.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, userID, insertedRelationID)
+		_, err = db.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES ($1, $2)`, userID, insertedRelationID)
 		if err != nil {
 			utils.RollbackOrLog(tx)
 			return UserDetails{}, utils.InternalServerError(err)
@@ -138,7 +138,7 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 	}
 
 	for _, insertedPatientID := range insertedPatientIDs {
-		_, err = db.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, insertedPatientID, userID)
+		_, err = db.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES ($1, $2)`, insertedPatientID, userID)
 		if err != nil {
 			utils.RollbackOrLog(tx)
 			return UserDetails{}, utils.InternalServerError(err)
@@ -178,7 +178,7 @@ func ReadUser(userID int) (UserDetails, error) {
 	var user UserDetails
 
 	err := db.QueryRow(`SELECT ID, Username, FullName, Role, Email FROM Users
-	WHERE ID = ?`, userID).Scan(&user.ID, &user.Username, &user.FullName, &user.Role, &user.Email)
+	WHERE ID = $1`, userID).Scan(&user.ID, &user.Username, &user.FullName, &user.Role, &user.Email)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -233,10 +233,10 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 	// Update user record
 	_, err = db.Exec(`UPDATE Users
 	SET
-		Username = ?,
-		FullName = ?,
-		Email = ?
-	WHERE ID = ?`, updatedUser.Username, updatedUser.FullName, updatedUser.Email, userID)
+		Username = $1,
+		FullName = $2,
+		Email = $3
+	WHERE ID = $4`, updatedUser.Username, updatedUser.FullName, updatedUser.Email, userID)
 
 	if err != nil {
 		utils.RollbackOrLog(tx)
@@ -259,7 +259,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 			}
 
 			if isNew {
-				_, err := tx.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, userID, updatedRelation.ID)
+				_, err := tx.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES ($1, $2)`, userID, updatedRelation.ID)
 				if err != nil {
 					utils.RollbackOrLog(tx)
 					return UserDetails{}, err
@@ -278,7 +278,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 			}
 
 			if !processed {
-				_, err := tx.Exec(`DELETE FROM PatientRelations WHERE PatientID = ? AND RelationID = ?`, userID, relation.ID)
+				_, err := tx.Exec(`DELETE FROM PatientRelations WHERE PatientID = $1 AND RelationID = $2`, userID, relation.ID)
 				if err != nil {
 					utils.RollbackOrLog(tx)
 					return UserDetails{}, err
@@ -300,7 +300,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 			}
 
 			if isNew {
-				_, err := tx.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES (?, ?)`, updatedPatient.ID, userID)
+				_, err := tx.Exec(`INSERT INTO PatientRelations (PatientID, RelationID) VALUES ($1, $2)`, updatedPatient.ID, userID)
 				if err != nil {
 					utils.RollbackOrLog(tx)
 					return UserDetails{}, err
@@ -319,7 +319,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 			}
 
 			if !processed {
-				_, err := tx.Exec(`DELETE FROM PatientRelations WHERE PatientID = ? AND RelationID = ?`, patient.ID, userID)
+				_, err := tx.Exec(`DELETE FROM PatientRelations WHERE PatientID = $1 AND RelationID = $2`, patient.ID, userID)
 				if err != nil {
 					utils.RollbackOrLog(tx)
 					return UserDetails{}, err
@@ -341,7 +341,7 @@ func UpdateUser(userID int, updatedUser UpdatedUser) (UserDetails, error) {
 
 // DeleteUser deletes a user
 func DeleteUser(userID int) error {
-	_, err := db.Exec(`DELETE FROM Users WHERE ID = ?`, userID)
+	_, err := db.Exec(`DELETE FROM Users WHERE ID = $1`, userID)
 
 	if err != nil {
 		return utils.InternalServerError(err)
@@ -355,7 +355,7 @@ func ListRelatedPatients(userID int) ([]UserSummary, error) {
 	// Read patients from database
 	rows, err := db.Query(`SELECT U.ID, U.Username, U.FullName, U.Role, U.Email FROM PatientRelations PR
 	LEFT JOIN Users U ON PR.PatientID = U.ID
-	WHERE PR.RelationID = ?`, userID)
+	WHERE PR.RelationID = $1`, userID)
 
 	if err != nil {
 		return []UserSummary{}, utils.InternalServerError(err)
@@ -369,7 +369,7 @@ func ListRelations(userID int, role string) ([]UserSummary, error) {
 	// Read patients from database
 	rows, err := db.Query(`SELECT U.ID, U.Username, U.FullName, U.Role, U.Email FROM PatientRelations PR
 	LEFT JOIN Users U ON PR.RelationID = U.ID
-	WHERE PR.PatientID = ? AND U.Role = ?`, userID, role)
+	WHERE PR.PatientID = $1 AND U.Role = $2`, userID, role)
 
 	if err != nil {
 		return []UserSummary{}, utils.InternalServerError(err)

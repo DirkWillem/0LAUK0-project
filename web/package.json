@@ -3,7 +3,8 @@
   "repository": "https://github.com/DirkWillem/0LAUK0-project",
   "license": "MIT",
   "scripts": {
-    "start": "webpack-dev-server --config webpack.config.dev.js"
+    "start": "webpack-dev-server --config webpack.config.dev.js",
+    "build": "webpack --config webpack.config.release.js"
   },
   "devDependencies": {
     "@angular/common": "^2.4.8",
