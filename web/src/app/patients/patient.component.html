@@ -12,6 +12,21 @@
               <div class="col-sm-10">{{patient?.fullName}}</div>
             </div>
             <div class="form-group row">
+              <label class="col-sm-2 col-data-label">Phone</label>
+              <div class="col-sm-10" *ngIf="patient?.gender == 'male'">Male</div>
+              <div class="col-sm-10" *ngIf="patient?.gender == 'female'">Female</div>
+              <div class="col-sm-10" *ngIf="patient?.gender != 'female' && patient?.gender != 'male'"><i>Unknown</i></div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-2 col-data-label">Phone</label>
+              <div class="col-sm-10">
+                <a href="tel:{{patient?.phone}}">{{patient?.phone}}</a></div>
+            </div>
+            <div class="form-group row">
+              <label class="col-sm-2 col-data-label">Birth date</label>
+              <div class="col-sm-10">{{patient?.birthdate | formatDate}}</div>
+            </div>
+            <div class="form-group row">
               <label class="col-sm-2 col-data-label">Username</label>
               <div class="col-sm-10">{{patient?.username}}</div>
             </div>
@@ -24,6 +39,7 @@
               <div class="col-sm-10">
                 <a href="mailto:{{patient?.email}}">{{patient?.email}}</a></div>
             </div>
+
           </div>
         </template>
       </ngb-tab>

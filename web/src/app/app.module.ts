@@ -9,6 +9,7 @@ import { appComponents } from "./app.declarations";
 import { AppComponent } from "./app.component";
 import { CoreModule } from "./core/core.module";
 import { appRoutingModule } from "./app.routing";
+import { SharedModule } from "./shared/shared.module";
 
 /**
  * Main application module
@@ -19,6 +20,7 @@ import { appRoutingModule } from "./app.routing";
     FormsModule,
     HttpModule,
     CoreModule,
+    SharedModule,
     NgbModule.forRoot(),
     appRoutingModule
   ],

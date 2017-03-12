@@ -9,11 +9,14 @@ import (
 
 type (
 	NewUser struct {
-		Username string `json:"username"`
-		FullName string `json:"fullName"`
-		Role     string `json:"role"`
-		Password string `json:"password"`
-		Email    string `json:"email"`
+		Username  string `json:"username"`
+		FullName  string `json:"fullName"`
+		Role      string `json:"role"`
+		Password  string `json:"password"`
+		Email     string `json:"email"`
+		Birthdate string `json:"birthdate"`
+		Gender    string `json:"gender"`
+		Phone     string `json:"phone"`
 
 		PatientIDs    []int `json:"patientIds"`
 		CustomerIDs   []int `json:"customerIds"`
@@ -29,6 +32,7 @@ type (
 		Role     string `json:"role"`
 		Email    string `json:"email"`
 		EmailMD5 string `json:"emailMD5"`
+		Phone     string `json:"phone"`
 	}
 
 	// UserDetails contains all information on a user
@@ -39,6 +43,9 @@ type (
 		Role     string `json:"role"`
 		Email    string `json:"email"`
 		EmailMD5 string `json:"emailMD5"`
+		Birthdate string `json:"birthdate"`
+		Gender    string `json:"gender"`
+		Phone     string `json:"phone"`
 
 		Patients    []UserSummary `json:"patients,omitempty"`
 		Customers   []UserSummary `json:"customers,omitempty"`
@@ -50,7 +57,7 @@ type (
 	UpdatedUser struct {
 		Username string `json:"username"`
 		FullName string `json:"fullName"`
-		Email string `json:"email"`
+		Email    string `json:"email"`
 
 		Patients []struct {
 			ID int `json:"id"`
@@ -78,7 +85,7 @@ func init() {
 	usersSearchMapping = NewMapping()
 	usersSearchMapping.DefineFieldMapping("role", FieldMapping{
 		SearchType: SearchTypeEqual,
-		DBField: "Role",
+		DBField:    "Role",
 	})
 }
 
@@ -158,7 +165,7 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 
 // ListUsers returns a list of all users
 func ListUsers(search map[string]string) ([]UserSummary, error) {
-	query, queryParams := usersSearchMapping.CreateQuery(`SELECT ID, Username, FullName, Role, Email FROM Users
+	query, queryParams := usersSearchMapping.CreateQuery(`SELECT id, username, fullname, role, email, phone FROM users
 	WHERE %MAPPING_CONDITIONS%`, search)
 
 	// Read all users from the database
@@ -177,8 +184,8 @@ func ReadUser(userID int) (UserDetails, error) {
 	// Read user from the database
 	var user UserDetails
 
-	err := db.QueryRow(`SELECT ID, Username, FullName, Role, Email FROM Users
-	WHERE ID = $1`, userID).Scan(&user.ID, &user.Username, &user.FullName, &user.Role, &user.Email)
+	err := db.QueryRow(`SELECT ID, Username, FullName, Role, Email, birthdate, gender, phone FROM Users
+	WHERE ID = $1`, userID).Scan(&user.ID, &user.Username, &user.FullName, &user.Role, &user.Email, &user.Birthdate, &user.Gender, &user.Phone)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -353,7 +360,7 @@ func DeleteUser(userID int) error {
 // ListRelatedPatients returns a list of all patients related to a user
 func ListRelatedPatients(userID int) ([]UserSummary, error) {
 	// Read patients from database
-	rows, err := db.Query(`SELECT U.ID, U.Username, U.FullName, U.Role, U.Email FROM PatientRelations PR
+	rows, err := db.Query(`SELECT U.ID, U.Username, U.FullName, U.Role, U.Email, U.phone FROM PatientRelations PR
 	LEFT JOIN Users U ON PR.PatientID = U.ID
 	WHERE PR.RelationID = $1`, userID)
 
@@ -367,7 +374,7 @@ func ListRelatedPatients(userID int) ([]UserSummary, error) {
 // ListRelations returns a list of all relations of a patient
 func ListRelations(userID int, role string) ([]UserSummary, error) {
 	// Read patients from database
-	rows, err := db.Query(`SELECT U.ID, U.Username, U.FullName, U.Role, U.Email FROM PatientRelations PR
+	rows, err := db.Query(`SELECT U.ID, U.Username, U.FullName, U.Role, U.Email, U.phone FROM PatientRelations PR
 	LEFT JOIN Users U ON PR.RelationID = U.ID
 	WHERE PR.PatientID = $1 AND U.Role = $2`, userID, role)
 
@@ -384,7 +391,7 @@ func readUsersFromRows(rows *sql.Rows) ([]UserSummary, error) {
 	var user UserSummary
 
 	for rows.Next() {
-		err := rows.Scan(&user.ID, &user.Username, &user.FullName, &user.Role, &user.Email)
+		err := rows.Scan(&user.ID, &user.Username, &user.FullName, &user.Role, &user.Email, &user.Phone)
 		if err != nil {
 			return users, utils.InternalServerError(err)
 		}

@@ -1,4 +1,4 @@
-import { Model, Field, ModelListField, ModelJson } from "../model";
+import { Model, Field, ModelListField, DateField, ModelJson } from "../model";
 import { Injectable } from "@angular/core";
 import { APIInterface } from "./apiinterface.service";
 import { AuthHttp } from "./authhttp.service";
@@ -13,6 +13,9 @@ export class User extends Model {
   @Field() role: string;
   @Field() email: string;
   @Field() emailMD5: string;
+  @Field() phone: string;
+  @Field({detail: true}) gender: string;
+  @DateField({detail: true}) birthdate: Date;
 
   @ModelListField({optional: true, detail: true, model: User}) doctors: User[];
   @ModelListField({optional: true, detail: true, model: User}) pharmacists: User[];
