@@ -1,0 +1,84 @@
+<form #addPatientForm="ngForm" (ngSubmit)="createPatient()">
+  <div class="modal-header">
+    <h4 class="modal-title">Add Patient</h4>
+    <button type="button" class="close" aria-label="Close" (click)="close()">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <div class="modal-body">
+    <div class="form-group row">
+      <label for="username" class="col-form-label col-sm-4">Username</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" id="username" name="username" placeholder="Username" required [(ngModel)]="newPatient.username"/>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="fullName" class="col-form-label col-sm-4">Full Name</label>
+      <div class="col-sm-8">
+        <input type="text" class="form-control" id="fullName" name="fullName" placeholder="Full Name" required [(ngModel)]="newPatient.fullName"/>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="fullName" class="col-form-label col-sm-4">Email</label>
+      <div class="col-sm-8">
+        <input type="email" class="form-control" id="email" name="email" placeholder="email@example.com" required [(ngModel)]="newPatient.email"/>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="birthdate" class="col-form-label col-sm-4">Birthdate</label>
+      <div class="col-sm-8">
+        <div class="input-group">
+          <input class="form-control" placeholder="yyyy-mm-dd" id="birthdate"
+                 name="birthdate" [(ngModel)]="birthdate" ngbDatepicker #d="ngbDatepicker">
+          <div class="input-group-addon" (click)="d.toggle()" >
+            <i class="fa fa-calendar"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="gender" class="col-form-label col-sm-4">Gender</label>
+      <div class="col-sm-8">
+        <select [(ngModel)]="newPatient.gender" class="form-control" id="gender" name="gender">
+          <option value="male">Male</option>
+          <option value="female">Female</option>
+        </select>
+      </div>
+    </div>
+    <div class="form-group row">
+      <label for="phone" class="col-form-label col-sm-4">Phone number</label>
+      <div class="col-sm-8">
+        <input type="tel" class="form-control" id="email" name="phone" placeholder="0612341234" required [(ngModel)]="newPatient.phone"/>
+      </div>
+    </div>
+  </div>
+  <table class="table table-hover">
+    <thead>
+    <tr>
+      <th>Doctor Name</th>
+      <th style="width: 64px;"></th>
+    </tr>
+    </thead>
+    <tbody>
+    <tr *ngFor="let doctorId of newPatient.doctorIds; let i = index">
+      <td>
+        <select class="form-control" [(ngModel)]="newPatient.doctorIds[i]" name="doctors.{{i}}" required>
+          <option *ngFor="let doctor of doctors" [value]="doctor.id">{{doctor.fullName}}</option>
+        </select>
+      </td>
+      <td>
+        <button class="btn btn-danger" type="button" (click)="removeDoctor(i)"><i class="fa fa-trash-o"></i></button>
+      </td>
+    </tr>
+    <tr>
+      <td colspan="2" style="text-align: center">
+        <button type="button" class="btn btn-secondary btn-sm" (click)="addDoctor()"><i class="fa fa-plus"></i></button>
+      </td>
+    </tr>
+    </tbody>
+  </table>
+  <div class="modal-footer">
+    <button type="submit" class="btn btn-primary" [disabled]="!addPatientForm.form.valid">Add Patient</button>
+    <button type="button" class="btn btn-secondary" (click)="close()">Close</button>
+  </div>
+</form>

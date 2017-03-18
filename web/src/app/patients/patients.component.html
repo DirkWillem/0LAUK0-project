@@ -2,6 +2,9 @@
   <div class="card">
     <div class="card-header">
       Patients
+      <div class="header-actions">
+        <span class="action fa fa-plus" (click)="openAddPatientModal(addPatientModal)"></span>
+      </div>
     </div>
     <table class="table table-hover">
       <thead>
@@ -30,5 +33,8 @@
       </tbody>
     </table>
   </div>
-
 </div>
+
+<template #addPatientModal let-cAdd="close">
+  <add-patient [closeFn]="cAdd" (onCreate)="patientCreated($event)"></add-patient>
+</template>

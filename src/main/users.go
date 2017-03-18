@@ -107,15 +107,25 @@ func CreateUser(newUser NewUser) (UserDetails, error) {
 		return UserDetails{}, utils.InternalServerError(err)
 	}
 
-	result, err := tx.Exec(`INSERT INTO Users (Username, FullName, PasswordHash, Role, Email)
-	VALUES ($1, $2, $3, $4, $5)`, newUser.Username, newUser.FullName, passHash, newUser.Role, newUser.Email)
+	var userID int
+	err = tx.QueryRow(`INSERT INTO Users (Username, FullName, PasswordHash, Role, Email, birthdate, gender, phone)
+	VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING id`, newUser.Username, newUser.FullName, passHash, newUser.Role, newUser.Email, newUser.Birthdate, newUser.Gender, newUser.Phone).Scan(&userID)
 
 	if err != nil {
 		utils.RollbackOrLog(tx)
 		return UserDetails{}, utils.InternalServerError(err)
 	}
 
-	userID, err := result.LastInsertId()
+	// Commit the created user as Postgres won't accept the foreign keys otherwise
+	err = tx.Commit()
+
+	if err != nil {
+		utils.RollbackOrLog(tx)
+		return UserDetails{}, utils.InternalServerError(err)
+	}
+
+	// Begin new SQL transaction
+	tx, err = db.Begin()
 
 	if err != nil {
 		utils.RollbackOrLog(tx)

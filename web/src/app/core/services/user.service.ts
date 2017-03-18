@@ -23,6 +23,24 @@ export class User extends Model {
   @ModelListField({optional: true, detail: true, model: User}) customers: User[];
 }
 
+/**
+ * Data sent to the service for creating a new user
+ */
+export interface NewUser {
+  username: string;
+  fullName: string;
+  role: string;
+  email: string;
+  birthdate: Date;
+  gender: string;
+  phone: string;
+
+  patientIds?: number[];
+  customerIds?: number[];
+  doctorIds?: number[];
+  pharmacistIds?: number[];
+}
+
 @Injectable()
 export class UserService extends APIInterface<User> {
   baseURL = "/users";
@@ -30,6 +48,15 @@ export class UserService extends APIInterface<User> {
 
   constructor(authHttp: AuthHttp) {
     super(authHttp);
+  }
+
+  /**
+   * Creates a new user
+   * @param user - The new user data
+   * @returns {Promise<M>} the created user
+   */
+  async create(user: NewUser) {
+    return await super.create(user);
   }
 
   /**
