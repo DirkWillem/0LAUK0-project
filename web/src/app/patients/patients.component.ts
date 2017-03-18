@@ -55,6 +55,7 @@ export class PatientsComponent implements OnInit, OnDestroy {
     if(!this.patients.some(p => p.id == patient.id)) {
       this.patients.push(patient);
     }
+    this.router.navigate([patient.id], {relativeTo: this.route});
   }
 
 }

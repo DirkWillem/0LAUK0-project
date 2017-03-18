@@ -22,6 +22,8 @@ export class MedicationsComponent implements OnInit, OnDestroy {
     description: ""
   };
 
+  pendingMedication: Medication;
+
   errorMessage: string = "";
 
   constructor(private medicationService: MedicationService,
@@ -77,5 +79,33 @@ export class MedicationsComponent implements OnInit, OnDestroy {
     } catch(e) {
       this.errorMessage = e.message;
     }
+  }
+
+  /**
+   * Starts the deletion of a medication
+   * @param medication - The medication to delete
+   * @param contents - The contents of the confirm delete modal
+   */
+  startDeleteMedication(medication: Medication, contents) {
+    this.pendingMedication = medication;
+    this.modalService.open(contents);
+  }
+
+  /**
+   * Closes the confirm deletion modal
+   * @param closeFn - The close function
+   */
+  closeConfirmDeleteModal(closeFn: () => void) {
+    closeFn();
+  }
+
+  /**
+   * Deletes the pending medication and closes the confirm medication modal
+   * @param closeFn - The close function
+   */
+  async deletePendingMedication(closeFn: () => void) {
+    await this.medicationService.delete(this.pendingMedication.id);
+    this.medications = this.medications.filter(m => m.id != this.pendingMedication.id);
+    this.closeConfirmDeleteModal(closeFn);
   }
 }

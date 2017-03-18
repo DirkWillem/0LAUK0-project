@@ -39,4 +39,12 @@ export class APIInterface<M extends Model> {
     const json = await this.http.getJSON<ModelJson<M>>(`/api${this.baseURL}/${id}`);
     return new this.model(json);
   }
+
+  /**
+   * Deletes an entity
+   * @param id - The ID of the entity to delete
+   */
+  async delete(id: number): Promise<void> {
+    await this.http.delete(`/api${this.baseURL}/${id}`);
+  }
 }

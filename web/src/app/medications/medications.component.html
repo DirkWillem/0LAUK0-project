@@ -1,8 +1,8 @@
-<template #createMedicationModal let-c="close">
-  <form #createMedicationForm="ngForm" (ngSubmit)="createMedication(c)">
+<template #createMedicationModal let-cc="close">
+  <form #createMedicationForm="ngForm" (ngSubmit)="createMedication(cc)">
     <div class="modal-header">
       <h4 class="modal-title">New Medication</h4>
-      <button type="button" class="close" aria-label="Close" (click)="closeCreateMedicationModal(c)">
+      <button type="button" class="close" aria-label="Close" (click)="closeCreateMedicationModal(cc)">
         <span aria-hidden="true">&times;</span>
       </button>
 
@@ -22,7 +22,22 @@
       <button type="button" class="btn btn-secondary" (click)="closeCreateMedicationModal(c)">Close</button>
     </div>
   </form>
+</template>
 
+<template #confirmDeleteModal let-cd="close">
+  <div>
+    <div class="modal-header">
+      <h4 class="modal-title">Confirm Deletion</h4>
+
+    </div>
+    <div class="modal-body">
+      <p>Are you sure you want to delete {{pendingMedication.title}}?</p>
+    </div>
+    <div class="modal-footer">
+      <button type="submit" class="btn btn-danger" (click)="deletePendingMedication(cd)">Delete</button>
+      <button type="button" class="btn btn-secondary" (click)="closeConfirmDeleteModal(cd)">Close</button>
+    </div>
+  </div>
 </template>
 
 <div class="container">
@@ -43,6 +58,7 @@
           <th>#</th>
           <th>Title</th>
           <th>Description</th>
+          <th style="width: 64px"></th>
         </tr>
       </thead>
       <tbody>
@@ -55,6 +71,9 @@
           </td>
           <td>
             <span class="text-muted">{{medication.description}}</span>
+          </td>
+          <td>
+            <button class="btn btn-danger" type="button" (click)="startDeleteMedication(medication, confirmDeleteModal)"><i class="fa fa-trash-o"></i></button>
           </td>
         </tr>
       </tbody>
