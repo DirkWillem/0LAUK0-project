@@ -41,7 +41,7 @@ export class UpdateDoseComponent implements OnInit {
    */
   async ngOnInit() {
     // Make a copy of the dose so we aren't updating the actual model
-    this.dose = new Dose(this.dose.toJSON());
+    this.dose = await this.doseService.read(this.patientId, this.dose.id);
     this.dispenseAfter = this.parseTime(this.dose.dispenseAfter);
     this.dispenseBefore = this.parseTime(this.dose.dispenseBefore);
 
@@ -76,6 +76,7 @@ export class UpdateDoseComponent implements OnInit {
   async updateDose() {
     this.dose.dispenseAfter = this.formatTime(this.dispenseAfter);
     this.dose.dispenseBefore = this.formatTime(this.dispenseBefore);
+    this.dose.medications.forEach(med => med.medication.id = +med.medication.id);
 
     this.onUpdate.emit(await this.doseService.update(this.patientId, this.dose.id, this.dose));
 

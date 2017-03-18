@@ -80,15 +80,26 @@ func CreateDose(userID int, newDose NewDose) (DoseDetails, error) {
 	}
 
 	// Insert the dose into the Doses table
-	result, err := tx.Exec(`INSERT INTO Doses (Title, Description, UserID, DispenseAfter, DispenseBefore)
-  VALUES ($1, $2, $3, $4, $5)`, newDose.Title, newDose.Description, userID, newDose.DispenseAfter, newDose.DispenseBefore)
+	var doseID int
+
+	err = tx.QueryRow(`INSERT INTO Doses (Title, Description, UserID, DispenseAfter, DispenseBefore)
+  VALUES ($1, $2, $3, $4, $5) RETURNING id`, newDose.Title, newDose.Description, userID, newDose.DispenseAfter, newDose.DispenseBefore).Scan(&doseID)
 
 	if err != nil {
 		utils.RollbackOrLog(tx)
 		return DoseDetails{}, utils.InternalServerError(err)
 	}
 
-	doseID, err := result.LastInsertId()
+	// Commit the created user as Postgres won't accept the foreign keys otherwise
+	err = tx.Commit()
+
+	if err != nil {
+		utils.RollbackOrLog(tx)
+		return DoseDetails{}, utils.InternalServerError(err)
+	}
+
+	// Begin new SQL transaction
+	tx, err = db.Begin()
 
 	if err != nil {
 		utils.RollbackOrLog(tx)

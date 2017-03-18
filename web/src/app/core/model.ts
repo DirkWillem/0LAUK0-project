@@ -211,7 +211,10 @@ export class Model {
         if(!field.optional && !field.detail) {
           console.log(`Failed to serialize ${(<any>this.constructor).name}: Non-optional, non-detail field ${fieldName} was missing`);
           throw new Error(`Failed to serialize ${(<any>this.constructor).name}: Non-optional, non-detail field ${fieldName} was missing`);
-
+        } else if(field.type == FieldType.MODEL_LIST) {
+          obj[fieldName] = [];
+        } else if(field.type == FieldType.MODEL_DICT) {
+          obj[fieldName] = {};
         }
       }
     }
