@@ -1,6 +1,8 @@
 package main
 
-import "main/utils"
+import (
+	"main/utils"
+)
 
 type (
 	// DoseSummarySummary contains summary information on a dose summary
@@ -67,8 +69,13 @@ func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 
 // ReadDoseSummary reads the dose summary details for a given user ID and date
 func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
+	//forDate, err := time.Parse(DateFormat, date)
+	//if err != nil {
+	//	return []DoseStatus{}, err
+	//}
+
 	// Read dose statuses from the database
-	rows, err := db.Query(`SELECT D.ID AS DoseID, D.Title AS DoseTitle, IFNULL(DH.DispensedTime, '') AS DispensedTime,
+	rows, err := db.Query(`SELECT D.ID AS DoseID, D.Title AS DoseTitle, COALESCE(DH.DispensedTime::text, '') AS DispensedTime,
   (DH.ID IS NOT NULL) AS Dispensed,
   (DH.ID IS NULL AND (
     (D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME < D.DispenseBefore) OR D.DispenseAfter > D.DispenseBefore
@@ -92,17 +99,12 @@ func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
 	// Iterate over rows and store in slice
 	statuses := []DoseStatus{}
 	var status DoseStatus
-	var dispensed, pending, beingDispensed byte
 
 	for rows.Next() {
-		err = rows.Scan(&status.Dose.ID, &status.Dose.Title, &status.DispensedTime, &dispensed, &pending, &beingDispensed)
+		err = rows.Scan(&status.Dose.ID, &status.Dose.Title, &status.DispensedTime, &status.Dispensed, &status.Pending, &status.BeingDispensed)
 		if err != nil {
 			return statuses, utils.InternalServerError(err)
 		}
-
-		status.Dispensed = dispensed == 1
-		status.Pending = pending == 1
-		status.BeingDispensed = beingDispensed == 1
 
 		statuses = append(statuses, status)
 	}

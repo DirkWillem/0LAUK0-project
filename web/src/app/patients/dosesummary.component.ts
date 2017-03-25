@@ -54,7 +54,8 @@ export class DoseSummaryComponent implements OnInit, OnDestroy {
    */
   async toggle() {
     if(!this.opened && this.statuses == null) {
-      this.statuses = await this.doseSummaryService.listDoseStatuses(this.userId, this.summary.date);
+      console.log(this.summary);
+      this.statuses = await this.doseSummaryService.listDoseStatuses(this.userId, moment(new Date(this.summary.date)).format("YYYY-MM-DD"));
     }
 
     this.opened = !this.opened;

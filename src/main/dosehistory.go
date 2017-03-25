@@ -1,8 +1,8 @@
 package main
 
 import (
-	"time"
 	"main/utils"
+	"time"
 )
 
 type (
@@ -55,8 +55,9 @@ func init() {
 
 func CreateDoseHistoryEntry(userID int, newDoseHistoryEntry NewDoseHistoryEntry) (DoseHistoryEntryDetails, error) {
 	// Insert the new dose history in the database
-	result, err := db.Exec(`INSERT INTO DoseHistory (DoseID, DispensedDay, DispensedTime)
-	VALUES ($1, $2, $3)`, newDoseHistoryEntry.DoseID, newDoseHistoryEntry.DispensedDay, newDoseHistoryEntry.DispensedTime)
+	var doseHistoryEntryID int
+	err := db.QueryRow(`INSERT INTO DoseHistory (DoseID, DispensedDay, DispensedTime)
+	VALUES ($1, $2, $3) RETURNING id`, newDoseHistoryEntry.DoseID, newDoseHistoryEntry.DispensedDay, newDoseHistoryEntry.DispensedTime).Scan(&doseHistoryEntryID)
 
 	if err != nil {
 		return DoseHistoryEntryDetails{}, utils.InternalServerError(err)
@@ -100,13 +101,6 @@ func CreateDoseHistoryEntry(userID int, newDoseHistoryEntry NewDoseHistoryEntry)
 
 	doseStatusesSubject.DoseStatusesUpdated(userID, dispensedDay.Format(DateFormat), statuses)
 
-	// Read the updated dose history entry and return
-	doseHistoryEntryID, err := result.LastInsertId()
-
-	if err != nil {
-		return DoseHistoryEntryDetails{}, utils.InternalServerError(err)
-	}
-
 	return ReadDoseHistoryEntry(userID, int(doseHistoryEntryID))
 }
 
@@ -148,7 +142,6 @@ func ReadDoseHistoryEntry(userID, doseHistoryEntryID int) (DoseHistoryEntryDetai
 	err := db.QueryRow(`SELECT DH.ID, DH.DispensedDay, DH.DispensedTime, D.ID, D.Title FROM DoseHistory DH
 	LEFT JOIN Doses D ON DH.DoseID = D.ID
 	WHERE D.UserID = $1 AND DH.ID = $2`, userID, doseHistoryEntryID).Scan(&dhe.ID, &dhe.DispensedDay, &dhe.DispensedTime, &dhe.Dose.ID, &dhe.Dose.Title)
-
 	if err != nil {
 		return dhe, utils.InternalServerError(err)
 	}
