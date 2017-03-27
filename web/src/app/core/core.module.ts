@@ -15,6 +15,8 @@ import { DosesResolve } from "./resolves/dose.resolve";
 
 import { AuthGuard} from './guards/auth.guard';
 import { AutoLoginGuard } from "./guards/autologin.guard";
+import { PRNMedicationService } from "./services/prnmedication.service";
+import { PRNMedicationsResolve } from "./resolves/prnmedication.resolve";
 
 /**
  * Module containing all services
@@ -26,7 +28,8 @@ import { AutoLoginGuard } from "./guards/autologin.guard";
     MedicationService, MedicationsResolve, MedicationResolve,
     UserService, PatientsResolve, UserResolve,
     DoseService, DosesResolve,
-    DoseSummaryService, DoseSummariesResolve
+    DoseSummaryService, DoseSummariesResolve,
+    PRNMedicationService, PRNMedicationsResolve
   ]
 })
 export class CoreModule {

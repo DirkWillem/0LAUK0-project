@@ -4,12 +4,11 @@ import (
 	"fmt"
 	"github.com/gorilla/mux"
 	"log"
-	"net/http"
-	"main/utils"
 	"main/dispatch"
+	"main/utils"
+	"net/http"
 	"os"
 )
-
 
 func fileHandler(w http.ResponseWriter, r *http.Request) {
 	if _, err := os.Stat("./static" + r.URL.Path); err != nil {
@@ -47,6 +46,12 @@ func main() {
 	r.HandleFunc("/api/users/{userId}/dosehistory", CheckJWT(CheckRole(Dispenser, HandleCreateDoseHistoryEntry))).Methods("POST")
 	r.HandleFunc("/api/users/{userId}/dosehistory", CheckJWT(CheckRole(Doctor, HandleListDoseHistoryEntries))).Methods("GET")
 	r.HandleFunc("/api/users/{userId}/dosehistory/{doseHistoryEntryId}", CheckJWT(CheckRole(Doctor, HandleReadDoseHistoryEntry))).Methods("GET")
+
+	r.HandleFunc("/api/users/{userId}/prnmedications", CheckJWT(HandleListPRNMedications)).Methods("GET")
+	r.HandleFunc("/api/users/{userId}/prnmedications", CheckJWT(CheckRole(Doctor, HandleCreatePRNMedication))).Methods("POST")
+	r.HandleFunc("/api/users/{userId}/prnmedications/{prnMedicationId}", CheckJWT(HandleReadPRNMedication)).Methods("GET")
+	r.HandleFunc("/api/users/{userId}/prnmedications/{prnMedicationId}", CheckJWT(CheckRole(Doctor, HandleUpdatePRNMedication))).Methods("PUT")
+	r.HandleFunc("/api/users/{userId}/prnmedications/{prnMedicationId}", CheckJWT(CheckRole(Doctor, HandleDeletePRNMedication))).Methods("DELETE")
 
 	r.HandleFunc("/api/users/{userId}/dosesummaries", CheckJWT(CheckRole(Doctor, HandleListDoseSummaries))).Methods("GET")
 	r.HandleFunc("/api/users/{userId}/dosesummaries/{date}", CheckJWT(CheckRole(Doctor, HandleReadDoseSummary))).Methods("GET")

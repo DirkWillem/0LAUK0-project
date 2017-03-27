@@ -83,6 +83,34 @@
           </div>
         </template>
       </ngb-tab>
+
+      <ngb-tab title="PRN Medications">
+        <template ngbTabContent>
+          <div class="card-block">
+            <div class="list-group" style="margin-top: 16px;">
+              <div class="list-group-item list-group-item-action" style="display: block" *ngFor="let prnMedication of prnMedications">
+                <h5 class="mb-1">
+                  {{prnMedication.medication.title}}
+                  <div class="header-actions">
+                    <i class="dangerous action fa fa-trash-o"></i>
+                  </div>
+                </h5>
+                <p class="text-muted">{{prnMedication.description}}</p>
+                <div class="form-group row">
+                  <label class="col-sm-2 col-data-label">Daily limit</label>
+                  <div class="col-sm-10 text-muted" *ngIf="prnMedication.maxDaily == 0">No limit</div>
+                  <div class="col-sm-10 text-muted" *ngIf="prnMedication.maxDaily != 0">{{prnMedication.maxDaily}}</div>
+                </div>
+                <div class="form-group row">
+                  <label class="col-sm-2 col-data-label">Minimum in-between time</label>
+                  <div class="col-sm-10 text-muted" *ngIf="prnMedication.minInterval == 0">No minimum in-between time</div>
+                  <div class="col-sm-10 text-muted" *ngIf="prnMedication.minInterval != 0">{{prnMedication.minInterval}} hours</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </ngb-tab>
     </ngb-tabset>
   </div>
 </div>

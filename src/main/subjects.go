@@ -8,6 +8,7 @@ var (
 	dosesSubject         *DosesSubject
 	doseSummariesSubject *DoseSummariesSubject
 	doseStatusesSubject  *DoseStatusesSubject
+	prnSubject           *PRNSubject
 )
 
 func init() {
@@ -19,4 +20,5 @@ func init() {
 	dosesSubject = NewDosesSubject(dispatcher)
 	doseSummariesSubject = NewDoseSummariesSubject(dispatcher)
 	doseStatusesSubject = NewDoseStatusesSubject(dispatcher)
+	prnSubject = NewPRNSubject(dispatcher)
 }

@@ -8,6 +8,7 @@ import { NgbModal } from "@ng-bootstrap/ng-bootstrap";
 import { DoseSummarySummary, DoseSummaryService } from "../core/services/dosesummary.service";
 import { applyUpdateToCollection } from "../core/collectionupdates";
 import { DispatcherService } from "../core/services/dispatcher.service";
+import { PRNMedication } from "../core/services/prnmedication.service";
 
 /**
  * Component for a single patient
@@ -20,6 +21,7 @@ export class PatientComponent implements OnInit, OnDestroy {
   patient: User;
   doses: Dose[];
   doseSummaries: DoseSummarySummary[];
+  prnMedications: PRNMedication[];
 
   routeDataSubscription: Subscription;
 
@@ -44,10 +46,12 @@ export class PatientComponent implements OnInit, OnDestroy {
    * Initialization Angular lifecycle hook
    */
   ngOnInit() {
-    this.routeDataSubscription = this.route.data.subscribe(async (data: {patient: User, doses: Dose[], doseSummaries: DoseSummarySummary[]}) => {
+    this.routeDataSubscription = this.route.data.subscribe(async (data: {patient: User, doses: Dose[], doseSummaries: DoseSummarySummary[], prnMedications: PRNMedication[]}) => {
       this.patient = data.patient;
       this.doses = data.doses;
       this.doseSummaries = data.doseSummaries;
+      this.prnMedications = data.prnMedications;
+
 
       const dosesSubscription = await this.doseService.getCollectionUpdates(this.patient.id);
       this.dosesUpdatesSubscription = dosesSubscription.updates

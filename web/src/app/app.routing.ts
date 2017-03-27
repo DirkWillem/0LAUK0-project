@@ -13,6 +13,7 @@ import { PatientsResolve, UserResolve } from "./core/resolves/user.resolve";
 import { PatientComponent } from "./patients/patient.component";
 import { DosesResolve } from "./core/resolves/dose.resolve";
 import { DoseSummariesResolve } from "./core/resolves/dosesummary.resolve";
+import { PRNMedicationsResolve } from "./core/resolves/prnmedication.resolve";
 
 /**
  * Contains all routes of the application
@@ -57,7 +58,8 @@ const routes = [
         resolve: {
           patient: UserResolve,
           doses: DosesResolve,
-          doseSummaries: DoseSummariesResolve
+          doseSummaries: DoseSummariesResolve,
+          prnMedications: PRNMedicationsResolve
         }
       }
     ]
