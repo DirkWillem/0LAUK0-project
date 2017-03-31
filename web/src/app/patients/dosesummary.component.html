@@ -23,5 +23,15 @@
       <span *ngIf="!status.dispensed && !status.pending" class="text-danger">Not dispensed</span>
     </div>
   </div>
+
+  <h6 style="margin: 16px 0">PRN Medications</h6>
+
+  <div class="row" *ngFor="let prnStatus of prnStatuses">
+    <label class="col-data-label col-sm-2">{{prnStatus.prnMedication.title}}</label>
+    <div class="col-sm-10">
+      <span *ngIf="prnStatus.nDispensed == 0" class="text-muted">None dispensed today</span>
+      <span *ngIf="prnStatus.nDispensed != 0">{{prnStatus.nDispensed}} dispensed today, the last at {{prnStatus.lastDispensedAt}}</span>
+    </div>
+  </div>
 </div>
 

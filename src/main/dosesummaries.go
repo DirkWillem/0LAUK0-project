@@ -21,6 +21,13 @@ type (
 		BeingDispensed bool                `json:"beingDispensed"`
 		Dose           utils.MinimalEntity `json:"dose"`
 	}
+
+	// PRNStatus represents the status of a PRN medication
+	PRNStatus struct {
+		PRNMedication   utils.MinimalEntity `json:"prnMedication"`
+		NDispensed      int                 `json:"nDispensed"`
+		LastDispensedAt string              `json:"lastDispensedAt"`
+	}
 )
 
 // ListDoseSummaries returns a list of dose summaries for a given user ID
@@ -69,13 +76,8 @@ func ListDoseSummaries(userID int) ([]DoseSummarySummary, error) {
 
 // ReadDoseSummary reads the dose summary details for a given user ID and date
 func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
-	//forDate, err := time.Parse(DateFormat, date)
-	//if err != nil {
-	//	return []DoseStatus{}, err
-	//}
-
 	// Read dose statuses from the database
-	rows, err := db.Query(`SELECT D.ID AS DoseID, D.Title AS DoseTitle, COALESCE(DH.DispensedTime::text, '') AS DispensedTime,
+	rows, err := db.Query(`SELECT D.ID AS DoseID, D.Title AS DoseTitle, COALESCE(DH.DispensedTime::time::text, '') AS DispensedTime,
   (DH.ID IS NOT NULL) AS Dispensed,
   (DH.ID IS NULL AND (
     (D.DispenseAfter < D.DispenseBefore AND CURRENT_TIME < D.DispenseBefore) OR D.DispenseAfter > D.DispenseBefore
@@ -104,6 +106,40 @@ func ReadDoseSummary(userID int, date string) ([]DoseStatus, error) {
 		err = rows.Scan(&status.Dose.ID, &status.Dose.Title, &status.DispensedTime, &status.Dispensed, &status.Pending, &status.BeingDispensed)
 		if err != nil {
 			return statuses, utils.InternalServerError(err)
+		}
+
+		statuses = append(statuses, status)
+	}
+
+	// Read PRN statuses
+
+	return statuses, nil
+}
+
+// readPRNStatus returns a list of PRN statuses for a given user ID and date
+func ReadPRNStatuses(userID int, date string) ([]PRNStatus, error) {
+	// Query the database
+	rows, err := db.Query(`SELECT pm.id, m.title, COALESCE(ph.ndispensed, 0), COALESCE(ph.lastdispensed::time::text, '') FROM prnmedications pm
+		LEFT JOIN (SELECT prnmedicationid, MAX(dispensedtime) AS lastdispensed, COUNT(*) AS ndispensed
+			FROM prnhistory
+			WHERE dispensedday = $1
+			GROUP BY prnmedicationid) ph ON ph.prnmedicationid = pm.id
+		LEFT JOIN users u ON pm.userid = u.id
+		LEFT JOIN medications m ON m.id = pm.medicationid
+	WHERE u.id = $2`, date, userID)
+
+	if err != nil {
+		return []PRNStatus{}, utils.InternalServerError(err)
+	}
+
+	// Iterate over rows and store in slice
+	statuses := []PRNStatus{}
+	var status PRNStatus
+
+	for rows.Next() {
+		err = rows.Scan(&status.PRNMedication.ID, &status.PRNMedication.Title, &status.NDispensed, &status.LastDispensedAt)
+		if err != nil {
+			return []PRNStatus{}, utils.InternalServerError(err)
 		}
 
 		statuses = append(statuses, status)

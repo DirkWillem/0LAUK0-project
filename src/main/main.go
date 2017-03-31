@@ -55,6 +55,9 @@ func main() {
 
 	r.HandleFunc("/api/users/{userId}/dosesummaries", CheckJWT(CheckRole(Doctor, HandleListDoseSummaries))).Methods("GET")
 	r.HandleFunc("/api/users/{userId}/dosesummaries/{date}", CheckJWT(CheckRole(Doctor, HandleReadDoseSummary))).Methods("GET")
+	r.HandleFunc("/api/users/{userId}/prnsummaries/{date}", CheckJWT(CheckRole(Doctor, HandleReadPRNSummary))).Methods("GET")
+
+	r.HandleFunc("/api/users/{userId}/prnhistory", CheckJWT(CheckRole(Dispenser, HandleCreatePRNHistoryEntry))).Methods("POST")
 
 	r.HandleFunc("/api/dispatcher", dispatch.CreateDispatchHandler(dispatcher)).Methods("GET")
 

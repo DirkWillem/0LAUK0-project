@@ -1,7 +1,7 @@
 import { Component, Input, OnInit, OnDestroy } from '@angular/core';
 import { Subscription } from 'rxjs'
 
-import { DoseSummarySummary, DoseStatus, DoseSummaryService } from "../core/services/dosesummary.service";
+import { DoseSummarySummary, DoseStatus, DoseSummaryService, PRNStatus } from "../core/services/dosesummary.service";
 
 import * as moment from 'moment'
 
@@ -16,6 +16,7 @@ export class DoseSummaryComponent implements OnInit, OnDestroy {
   opened: boolean = false;
 
   statuses: DoseStatus[] = null;
+  prnStatuses: PRNStatus[] = null;
   statusesUpdatesSubscriptionId: number;
   statusesUpdatesSubscription: Subscription;
 
@@ -56,6 +57,7 @@ export class DoseSummaryComponent implements OnInit, OnDestroy {
     if(!this.opened && this.statuses == null) {
       console.log(this.summary);
       this.statuses = await this.doseSummaryService.listDoseStatuses(this.userId, moment(new Date(this.summary.date)).format("YYYY-MM-DD"));
+      this.prnStatuses = await this.doseSummaryService.listPRNStatuses(this.userId, moment(new Date(this.summary.date)).format("YYYY-MM-DD"));
     }
 
     this.opened = !this.opened;

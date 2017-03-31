@@ -9,6 +9,7 @@ import { AddDoseComponent } from "./patients/adddose.component";
 import { UpdateDoseComponent } from "./patients/updatedose.component";
 import { DoseSummaryComponent } from "./patients/dosesummary.component";
 import { AddPatientComponent } from "./patients/addpatient.component";
+import { AddPRNMedicationComponent } from "./patients/addprnmedication.component";
 
 /**
  * All components that need to be imported into the App module
@@ -20,5 +21,6 @@ export const appComponents = [
   HomeComponent,
   MedicationsComponent, MedicationComponent,
   PatientsComponent, PatientComponent, AddPatientComponent,
-    AddDoseComponent, UpdateDoseComponent, DoseSummaryComponent
+    AddDoseComponent, UpdateDoseComponent, DoseSummaryComponent,
+    AddPRNMedicationComponent
 ];

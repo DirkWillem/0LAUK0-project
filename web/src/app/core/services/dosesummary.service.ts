@@ -27,6 +27,15 @@ export class DoseStatus extends Model {
 }
 
 /**
+ * Contains the status of a PRN medication
+ */
+export class PRNStatus extends Model {
+  @Field() lastDispensedAt: string;
+  @Field() nDispensed: number;
+  @Field() prnMedication: {id: number, title: string};
+}
+
+/**
  * Service for interfacing with the dose summary API
  */
 @Injectable()
@@ -54,6 +63,17 @@ export class DoseSummaryService {
   async listDoseStatuses(userId: number, date: string): Promise<DoseStatus[]> {
     const json = await this.http.getJSON<ModelJson<DoseStatus>[]>(`/api/users/${userId}/dosesummaries/${date}`);
     return json.map(item => new DoseStatus(item));
+  }
+
+  /**
+   * Returns a list of all PRN statuses for a given user ID on a given date
+   * @param userId - The ID of the user the PRN statuses belong to
+   * @param date - The date to find the PRN statuses for
+   * @returns {Promise<[PRNStatus,PRNStatus,PRNStatus,PRNStatus,PRNStatus]>}
+   */
+  async listPRNStatuses(userId: number, date: string): Promise<PRNStatus[]> {
+    const json = await this.http.getJSON<ModelJson<PRNStatus>[]>(`/api/users/${userId}/prnsummaries/${date}`);
+    return json.map(item => new PRNStatus(item));
   }
 
   /**

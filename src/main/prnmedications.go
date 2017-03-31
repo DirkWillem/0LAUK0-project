@@ -82,7 +82,7 @@ func CreatePRNMedication(userID int, newMedication NewPRNMedication) (PRNMedicat
 // ListPRNMedications returns a list of all PRN medications for a given user
 func ListPRNMedications(userID int) ([]PRNMedicationSummary, error) {
 	// Read the PRN medications from the database
-	rows, err := db.Query(`SELECT p.id, p.description, p.userid, p.maxdaily, p.mininterval, m.id, m.title FROM prnmedications p
+	rows, err := db.Query(`SELECT p.id, p.description, p.userid, p.maxdaily, p.mininterval, m.id, m.title, m.description FROM prnmedications p
 	LEFT JOIN medications m on p.medicationid = m.id
 	WHERE p.userid = $1`, userID)
 
@@ -95,7 +95,7 @@ func ListPRNMedications(userID int) ([]PRNMedicationSummary, error) {
 	var m PRNMedicationSummary
 
 	for rows.Next() {
-		err = rows.Scan(&m.ID, &m.Description, &m.UserID, &m.MaxDaily, &m.MinInterval, &m.Medication.ID, &m.Medication.Title)
+		err = rows.Scan(&m.ID, &m.Description, &m.UserID, &m.MaxDaily, &m.MinInterval, &m.Medication.ID, &m.Medication.Title, &m.Medication.Description)
 		if err != nil {
 			return []PRNMedicationSummary{}, utils.InternalServerError(err)
 		}
@@ -112,9 +112,9 @@ func ReadPRNMedication(userID, prnMedicationID int) (PRNMedicationDetails, error
 	// Read the PRN medication from the database
 	var m PRNMedicationDetails
 
-	err := db.QueryRow(`SELECT p.id, p.description, p.userid, p.maxdaily, p.mininterval, m.id, m.title FROM prnmedications p
+	err := db.QueryRow(`SELECT p.id, p.description, p.userid, p.maxdaily, p.mininterval, m.id, m.title, m.description FROM prnmedications p
 	LEFT JOIN medications m on p.medicationid = m.id
-	WHERE p.userid = $1`, userID, prnMedicationID).Scan(&m.ID, &m.Description, &m.UserID, &m.MaxDaily, &m.MinInterval, &m.Medication.ID, &m.Medication.Title)
+	WHERE p.userid = $1`, userID, prnMedicationID).Scan(&m.ID, &m.Description, &m.UserID, &m.MaxDaily, &m.MinInterval, &m.Medication.ID, &m.Medication.Title, &m.Medication.Description)
 
 	if err != nil {
 		if err == sql.ErrNoRows {
